@@ -1,4 +1,4 @@
-# Nov
+# NovAI
 
 **AI for Discord — powered by [Pollinations AI](https://pollinations.ai)**
 

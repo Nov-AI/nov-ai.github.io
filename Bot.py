@@ -46,7 +46,7 @@ USER_MEMORY: dict[int, dict] = {}
 CHAT_THREADS: dict[int, dict] = {}
 
 DEFAULT_MODELS = {
-    "text":  "GPT-5.4 Nano",
+    "text":  "GPT-5 Nano",
     "image": "Flux Schnell",
     "audio": "Nova",
     "video": "Veo 3.1 Fast (PAID)",
@@ -306,23 +306,22 @@ def auth_headers(key) -> dict:
 def is_free_model(name: str) -> bool:
     return "(PAID)" not in name
 
-# Modelli disponibili SENZA account (endpoint pubblici, no key)
+# Modelli disponibili SENZA account — endpoint pubblico text.pollinations.ai
+# Solo quelli che Pollinations eroga davvero senza autenticazione
 FREE_MODELS_NO_AUTH = {
     "text": [
-        "GPT-5.4 Nano",        # openai  (default)
-        "GPT-5.4 Mini",        # gpt-5.4-mini
-        "Mistral Small 4",     # mistral
-        "Mistral Large 3",     # mistral-large
-        "Meta Llama 3.3 70B",  # llama
-        "Meta Llama 4 Scout",  # llama-scout
-        "Gemini 3.5 Flash (PAID)",      # gemini (free via public endpoint)
-        "Gemini 3.1 Pro (PAID)",        # gemini-pro
-        "DeepSeek V4 Flash (Lite)",     # deepseek
-        "DeepSeek V4 Pro",              # deepseek-r1
-        "Qwen3 Coder 30B",              # qwen-coder
-        "Phi-4",                        # phi (non in lista originale ma compatibile)
-        "MIDIjourney",                  # midijourney
-        "Z.ai GLM-5.2",                 # unity equivalent
+        "Mistral Small 4",      # mistral
+        "Mistral Large 3",      # mistral-large
+        "Meta Llama 3.3 70B",   # llama
+        "Meta Llama 4 Scout",   # llama-large
+        "DeepSeek V4 Flash (Lite)",  # deepseek
+        "DeepSeek V4 Pro",      # deepseek-r1
+        "Qwen3 Coder 30B",      # qwen-coder
+        "Phi-4",                # phi
+        "MIDIjourney",          # midijourney
+        "Z.ai GLM-5.2",         # unity
+        "GPT-5 Nano",           # openai (default, GPT-4o-mini equivalent)
+        "GPT-5.4 Mini",         # openai-large (GPT-4o equivalent)
     ],
     "image": [
         "Flux Schnell",  # flux — unico senza key
@@ -740,10 +739,10 @@ async def cmd_image(interaction: discord.Interaction, prompt: str, size: str = "
 @bot.tree.command(name="audio", description="Convert text to speech")
 @app_commands.describe(text="Text to convert to audio")
 async def cmd_audio(interaction: discord.Interaction, text: str):
-    key = get_key(interaction.user.id)
-    if not key:
+    if not has_personal_key(interaction.user.id):
         await interaction.response.send_message(embed=no_key_embed(), ephemeral=True)
         return
+    key = get_key(interaction.user.id)
 
     await interaction.response.defer(thinking=True)
     voice = get_model(interaction.user.id, "audio")
@@ -768,10 +767,10 @@ async def cmd_audio(interaction: discord.Interaction, text: str):
 @bot.tree.command(name="video", description="Generate a video with AI (requires Pollen credits)")
 @app_commands.describe(prompt="Describe the video")
 async def cmd_video(interaction: discord.Interaction, prompt: str):
-    key = get_key(interaction.user.id)
-    if not key:
+    if not has_personal_key(interaction.user.id):
         await interaction.response.send_message(embed=no_key_embed(), ephemeral=True)
         return
+    key = get_key(interaction.user.id)
 
     await interaction.response.defer(thinking=True)
     model = get_model(interaction.user.id, "video")
@@ -855,10 +854,13 @@ async def cmd_models(interaction: discord.Interaction, type: str = "all"):
 
     embed = discord.Embed(
         title="📋 Nov - Available Models",
-        description="" if has_key else "🔓 *Showing free models only — `/connect` to unlock all*",
+        description="" if has_key else "🔓 *Free models only — `/connect` to unlock audio, video & more*",
         color=BOT_COLOR
     )
     for t in tipi:
+        if not has_key and t in ("audio", "video"):
+            embed.add_field(name=f"{TYPE_EMOJI[t]} {t.capitalize()}", value="🔒 Requires account — `/connect`", inline=True)
+            continue
         lista = "\n".join(f"`{m}`" for m in available_models(t, uid))
         embed.add_field(name=f"{TYPE_EMOJI[t]} {t.capitalize()}", value=lista or "*none*", inline=True)
     embed.set_footer(text="(PAID) = requires Pollen credits • /model to change")

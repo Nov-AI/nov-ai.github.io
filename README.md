@@ -44,9 +44,8 @@ No account required to get started. Connect your Pollinations account to unlock 
 ## Access Tiers
 
 ### Free — no account needed
-- **Text** — 12 models, GPT‑5.4 Nano by default
+- **Text** — 1 model, GPT-4o
 - **Image** — Flux Schnell
-- **Audio** — 11 OpenAI TTS voices (Nova, Alloy, Echo, Fable, Onyx, Shimmer, Ash, Ballad, Coral, Sage, Verse)
 
 ### Full access — connect your Pollinations account
 - All text models — GPT‑5.5, Gemini, Claude, Grok, Mistral, Llama, DeepSeek, and more

@@ -621,10 +621,12 @@ async def cmd_text(interaction: discord.Interaction, prompt: str, system: str = 
             auto_archive_duration=60
         )
 
-        # Manda risposta nel thread
-        embed_reply = discord.Embed(description=reply[:4000], color=BOT_COLOR)
-        embed_reply.set_footer(text=f"{model_name} - type /close to end")
-        await thread.send(embed=embed_reply)
+        # Manda risposta nel thread come testo normale
+        if len(reply) <= 2000:
+            await thread.send(reply)
+        else:
+            for chunk in [reply[i:i+2000] for i in range(0, len(reply), 2000)]:
+                await thread.send(chunk)
 
         # Salva stato thread
         CHAT_THREADS[thread.id] = {
@@ -881,8 +883,29 @@ async def cmd_models(interaction: discord.Interaction, type: str = "all"):
     tipi = [type] if type != "all" else ["text", "image", "audio", "video"]
     embed = discord.Embed(title="📋 Nov - Available Models", color=BOT_COLOR)
     for t in tipi:
-        lista = "\n".join(f"`{m}`" for m in KNOWN_MODELS[t])
-        embed.add_field(name=f"{TYPE_EMOJI[t]} {t.capitalize()}", value=lista or "*none*", inline=True)
+        models_list = KNOWN_MODELS[t]
+        # Spezza in chunks da max 1000 chars per rispettare il limite Discord
+        chunk_str = ""
+        chunk_num = 1
+        for m in models_list:
+            line = f"`{m}`
+"
+            if len(chunk_str) + len(line) > 1000:
+                embed.add_field(
+                    name=f"{TYPE_EMOJI[t]} {t.capitalize()}" + (f" ({chunk_num})" if chunk_num > 1 else ""),
+                    value=chunk_str.strip(),
+                    inline=False
+                )
+                chunk_str = line
+                chunk_num += 1
+            else:
+                chunk_str += line
+        if chunk_str:
+            embed.add_field(
+                name=f"{TYPE_EMOJI[t]} {t.capitalize()}" + (f" ({chunk_num})" if chunk_num > 1 else ""),
+                value=chunk_str.strip(),
+                inline=False
+            )
     embed.set_footer(text="(PAID) = requires Pollen credits • /model to change")
     await interaction.response.send_message(embed=embed, ephemeral=True)
 

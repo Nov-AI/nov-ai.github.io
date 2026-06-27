@@ -734,8 +734,17 @@ async def cmd_image(interaction: discord.Interaction, prompt: str, size: str = "
             w, h = size.split("x")
             seed = random.randint(1, 9999999)
             encoded = urllib.parse.quote(prompt)
-            img_url = f"https://gen.pollinations.ai/image/{encoded}?model={model}&width={w}&height={h}&nologo=true&seed={seed}"
-            img_bytes = await api_get_bytes(session, img_url)
+            if has_personal_key(uid):
+                img_url = f"https://gen.pollinations.ai/image/{encoded}?model={model}&width={w}&height={h}&nologo=true&seed={seed}"
+                async with session.get(img_url, headers=auth_headers(get_key(uid))) as resp:
+                    resp.raise_for_status()
+                    img_bytes = await resp.read()
+            else:
+                # Endpoint pubblico gratuito — nessuna auth
+                img_url = f"https://image.pollinations.ai/prompt/{encoded}?model={model}&width={w}&height={h}&nologo=true&seed={seed}&nofeed=true"
+                async with session.get(img_url) as resp:
+                    resp.raise_for_status()
+                    img_bytes = await resp.read()
 
         file  = discord.File(fp=io.BytesIO(img_bytes), filename="nov.png")
         embed = discord.Embed(color=BOT_COLOR)

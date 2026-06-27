@@ -48,9 +48,13 @@ No account required to get started. Connect your Pollinations account to unlock 
 - **Image** — Flux Schnell
 
 ### Full access — connect your Pollinations account
-- All text models — GPT‑5.5, Gemini, Claude, Grok, Mistral, Llama, DeepSeek, and more
-- All image models — Ideogram, Seedream, Grok Imagine, FLUX variants, and more
-- Video generation via Veo 3.1
+
+- All pollinations text generation models — GPT‑5.5, Gemini, Claude, Grok, Mistral, Llama, DeepSeek, and more
+
+- All pollinations image generation models — Ideogram, Seedream, Grok Imagine, FLUX variants, and more
+
+- All pollinations video generation models — Veo 3.1, LTX 2.3, Nova Reel,  Wan 3.7, and more
+
 - BYOP — your Pollen credits cover your own usage
 
 Use `/connect` to authorize via the [Pollinations device flow](https://enter.pollinations.ai/device).
@@ -92,7 +96,7 @@ python Bot.py
 
 ---
 
-## Deploy on Railway
+## Deploy on Any Hosting Platform (ex. Railway)
 
 1. Push the repository to GitHub
 2. Connect the repo to [Railway](https://railway.app)

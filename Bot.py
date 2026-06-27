@@ -31,7 +31,7 @@ AUTH_URL      = "https://enter.pollinations.ai/api/device"
 APP_KEY       = "pk_yQpEnADty90tWmr0"  # Nov App Key
 BOT_NAME      = "Nov"
 BOT_COLOR     = 0x5865F2
-BOT_VERSION   = "1.1.0"
+BOT_VERSION   = "1.2.0"
 
 # Chiavi per utente { user_id: "sk_..." }
 USER_KEYS: dict[int, str] = {}
@@ -46,144 +46,216 @@ USER_MEMORY: dict[int, dict] = {}
 CHAT_THREADS: dict[int, dict] = {}
 
 DEFAULT_MODELS = {
-    "text":  "ChatGPT 4o",
-    "image": "FLUX.1 Dev",
+    "text":  "GPT-5.4 Nano",
+    "image": "Flux Schnell",
     "audio": "Nova",
-    "video": "Google Veo 2 (PAID)",
+    "video": "Veo 3.1 Fast (PAID)",
 }
 
 # Modelli reali Pollinations — quelli con (PAID) richiedono crediti Pollen
 # Mappa: nome visualizzato → ID API reale
+# (PAID) = box gialla sul dashboard | nessun suffisso = box verde (free)
 MODEL_DISPLAY_TO_ID = {
-    # TEXT
-    "ChatGPT 4o mini":           "openai-fast",
-    "ChatGPT 4o":                "openai",
-    "ChatGPT 4o Large":          "openai-large",
-    "ChatGPT o3 mini":           "openai-reasoning",
-    "ChatGPT 5.4 (PAID)":        "gpt-5.4",
-    "ChatGPT 5.4 mini (PAID)":   "gpt-5.4-mini",
-    "Claude 3 Haiku":            "claude-fast",
-    "Claude 3.5 Sonnet (PAID)":  "claude",
-    "Claude 3.7 Sonnet (PAID)":  "claude-large",
-    "Claude Opus 4.6 (PAID)":    "claude-opus-4.6",
-    "Claude Opus 4.7 (PAID)":    "claude-opus-4.7",
-    "Gemini 2.0 Flash":          "gemini-fast",
-    "Gemini 2.5 Flash":          "gemini",
-    "Gemini 2.5 Flash Thinking": "gemini-thinking",
-    "Gemini 2.5 Pro":            "gemini-search",
-    "DeepSeek V3":               "deepseek",
-    "DeepSeek R1 (PAID)":        "deepseek-pro",
-    "Mistral Small 3.2":         "mistral-small-3.2",
-    "Mistral 7B":                "mistral",
-    "Mistral Large (PAID)":      "mistral-large",
-    "Llama 4 Scout":             "llama-scout",
-    "Llama 4 Maverick":          "llama-maverick",
-    "Llama 3.3 70B":             "llama",
-    "Qwen2.5 Coder":             "qwen-coder",
-    "Qwen2.5 72B":               "qwen-large",
-    "Qwen2.5 VL":                "qwen-vision",
-    "Grok 3 (PAID)":             "grok",
-    "Grok 3 Large (PAID)":       "grok-large",
-    "Perplexity (PAID)":         "perplexity",
-    "Perplexity Deep (PAID)":    "perplexity-deep",
-    "Perplexity R1 (PAID)":      "perplexity-reasoning",
-    "Mercury":                   "mercury",
-    "Kimi":                      "kimi",
-    "GLM-4":                     "glm",
-    "Phi-4":                     "phi",
-    # IMAGE
-    "FLUX.1 Schnell":            "flux-schnell",
-    "FLUX.1 Dev":                "flux",
-    "FLUX.1 Realism":            "flux-realism",
-    "FLUX.1 Anime":              "flux-anime",
-    "FLUX.1 3D":                 "flux-3d",
-    "FLUX.1 Pro (PAID)":         "kontext",
-    "DALL-E 3 (PAID)":           "gptimage",
-    "DALL-E 3 HD (PAID)":        "gptimage-large",
-    "GPT Image 2 (PAID)":        "gpt-image-2",
-    "Seedream 3.0 (PAID)":       "seedream",
-    "Seedream Pro (PAID)":       "seedream-pro",
-    "Seedream 5 (PAID)":         "seedream5",
-    "Ideogram v4 Turbo (PAID)":  "ideogram-v4-turbo",
-    "Ideogram v4 (PAID)":        "ideogram-v4-balanced",
-    "Ideogram v4 Quality (PAID)":"ideogram-v4-quality",
-    "Wan Image (PAID)":          "wan-image",
-    "Wan Image Pro (PAID)":      "wan-image-pro",
-    "Grok Imagine (PAID)":       "grok-imagine",
-    "Grok Imagine Pro (PAID)":   "grok-imagine-pro",
-    "Turbo":                     "turbo",
-    "Nova Canvas (PAID)":        "nova-canvas",
-    # AUDIO (voci TTS)
-    "Nova":                      "nova",
-    "Alloy":                     "alloy",
-    "Echo":                      "echo",
-    "Fable":                     "fable",
-    "Onyx":                      "onyx",
-    "Shimmer":                   "shimmer",
-    "Ash":                       "ash",
-    "Ballad":                    "ballad",
-    "Coral":                     "coral",
-    "Sage":                      "sage",
-    "Verse":                     "verse",
-    "ElevenLabs (PAID)":         "elevenlabs",
-    "ElevenLabs Flash (PAID)":   "elevenflash",
-    "ElevenLabs Multilingual (PAID)": "eleven-multilingual-v2",
-    "ElevenLabs Music (PAID)":   "elevenmusic",
-    "ElevenLabs SFX (PAID)":     "eleven-sfx",
-    "ACE Step (PAID)":           "acestep",
-    "Stable Audio 3 (PAID)":     "stable-audio-3-medium",
-    "Stable Audio 3 Large (PAID)":"stable-audio-3-large",
-    # VIDEO
-    "Google Veo 2 (PAID)":       "veo",
-    "Seedance Pro (PAID)":       "seedance-pro",
-    "Seedance 2.0 (PAID)":       "seedance-2.0",
-    "Wan (PAID)":                "wan",
-    "Wan Fast (PAID)":           "wan-fast",
-    "Wan Pro (PAID)":            "wan-pro",
-    "Wan Pro 1080p (PAID)":      "wan-pro-1080p",
-    "Grok Video Pro (PAID)":     "grok-video-pro",
-    "LTX Video 2 (PAID)":        "ltx-2",
-    "Nova Reel (PAID)":          "nova-reel",
+    # ── TEXT ──────────────────────────────────────
+    # FREE (box verde)
+    "GPT-5 Nano":                          "openai-fast",
+    "GPT-5.4 Nano":                        "openai",
+    "GPT-5.4 Mini":                        "gpt-5.4-mini",
+    "GPT-5.4":                             "gpt-5.4",
+    "GPT-5.5":                             "openai-large",
+    "GPT Audio Mini":                      "openai-audio",
+    "GPT Audio 1.5":                       "openai-audio-large",
+    "Nova Micro":                          "nova-fast",
+    "Nova 2 Lite":                         "nova",
+    "DeepSeek V4 Flash (Lite)":            "deepseek",
+    "DeepSeek V4 Pro":                     "deepseek-pro",
+    "Mistral Small 3.2":                   "mistral-small-3.2",
+    "Mistral Small 4":                     "mistral",
+    "Mistral Large 3":                     "mistral-large",
+    "Meta Llama 3.3 70B":                  "llama",
+    "Meta Llama 4 Scout":                  "llama-scout",
+    "Qwen3 Coder 30B":                     "qwen-coder",
+    "Qwen3 VL 30B A3B Instruct":           "qwen-vision",
+    "Qwen3.7 Plus":                        "qwen-large",
+    "Qwen3 VL 235B A22B Thinking":         "qwen-vision-pro",
+    "Qwen3Guard 8B":                       "qwen-safety",
+    "MiniMax M2.7":                        "minimax-m2.7",
+    "MiniMax M3":                          "minimax",
+    "StepFun Step 3.5 Flash":              "step-3.5-flash",
+    "StepFun Step 3.7 Flash":              "step-flash",
+    "Grok 4.20 Non-Reasoning":             "grok",
+    "Grok 4.20 Reasoning":                 "grok-4-20-reasoning",
+    "Grok 4.3":                            "grok-large",
+    "Perplexity Sonar":                    "perplexity-fast",
+    "Perplexity Sonar Pro":                "perplexity",
+    "Perplexity Sonar Reasoning":          "perplexity-reasoning",
+    "Moonshot Kimi K2.6":                  "kimi",
+    "Moonshot Kimi K2.7 Code":             "kimi-code",
+    "MIDIjourney":                         "midijourney",
+    "MIDIjourney Large":                   "midijourney-large",
+    "Z.ai GLM-5.2":                        "glm",
+    "Polly by @Itachi-1824":               "polly",
+    # PAID (box gialla)
+    "Gemini 2.5 Flash Lite (PAID)":        "gemini-fast",
+    "Gemini 3.1 Flash Lite (PAID)":        "gemini-flash-lite-3.1",
+    "Gemini 3.1 Flash Lite Search (PAID)": "gemini-search-fast",
+    "Google Gemini 2.5 Flash Search (PAID)": "gemini-search",
+    "Gemini 3 Flash (PAID)":               "gemini-3-flash",
+    "Gemini 3.5 Flash (PAID)":             "gemini",
+    "Gemini 3.5 Flash Search (PAID)":      "gemini-search-large",
+    "Gemini 3.1 Pro (PAID)":               "gemini-large",
+    "Gemma 4 26B (PAID)":                  "gemma",
+    "Mercury 2 (PAID)":                    "mercury",
+    "Qwen3 Coder Next (PAID)":             "qwen-coder-large",
+    "Meta Llama 4 Maverick (PAID)":        "llama-maverick",
+    "Claude Haiku 4.5 (PAID)":             "claude-fast",
+    "Claude Sonnet 4.6 (PAID)":            "claude",
+    "Claude Opus 4.6 (PAID)":              "claude-opus-4.6",
+    "Claude Opus 4.7 (PAID)":              "claude-opus-4.7",
+    "Claude Opus 4.8 (PAID)":              "claude-large",
+    # ── IMAGE ─────────────────────────────────────
+    # FREE (box verde)
+    "Flux Schnell":                        "flux",
+    "FLUX.2 Klein 4B":                     "klein",
+    "FLUX.1 Kontext":                      "kontext",
+    "GPT Image 1 Mini":                    "gptimage",
+    "GPT Image 1.5":                       "gptimage-large",
+    "Z-Image Turbo":                       "zimage",
+    "Nova Canvas":                         "nova-canvas",
+    # PAID (box gialla)
+    "Pruna p-image (PAID)":               "p-image",
+    "Pruna p-image-edit (PAID)":          "p-image-edit",
+    "Grok Imagine (PAID)":                "grok-imagine",
+    "Grok Imagine Pro (PAID)":            "grok-imagine-pro",
+    "Seedream 4.0 (PAID)":                "seedream",
+    "Seedream 4.5 Pro (PAID)":            "seedream-pro",
+    "Seedream 5.0 Lite (PAID)":           "seedream5",
+    "Ideogram 4.0 Turbo (PAID)":          "ideogram-v4-turbo",
+    "Ideogram 4.0 Balanced (PAID)":       "ideogram-v4-balanced",
+    "Ideogram 4.0 Quality (PAID)":        "ideogram-v4-quality",
+    "Wan 2.7 Image (PAID)":               "wan-image",
+    "Wan 2.7 Image Pro (PAID)":           "wan-image-pro",
+    "GPT Image 2 (PAID)":                 "gpt-image-2",
+    "NanoBanana (PAID)":                  "nanobanana",
+    "NanoBanana 2 (PAID)":                "nanobanana-2",
+    "NanoBanana Pro (PAID)":              "nanobanana-pro",
+    "Qwen Image Plus (PAID)":             "qwen-image",
+    # ── AUDIO ─────────────────────────────────────
+    # TTS voices OpenAI (parametro voice in /audio/speech)
+    "Nova":                               "nova",
+    "Alloy":                              "alloy",
+    "Echo":                               "echo",
+    "Fable":                              "fable",
+    "Onyx":                               "onyx",
+    "Shimmer":                            "shimmer",
+    "Ash":                                "ash",
+    "Ballad":                             "ballad",
+    "Coral":                              "coral",
+    "Sage":                               "sage",
+    "Verse":                              "verse",
+    # FREE (box verde)
+    "Whisper Large V3":                   "whisper",
+    "AssemblyAI Universal-2":             "universal-2",
+    "AssemblyAI Universal-3 Pro":         "universal-3-pro",
+    "ACE-Step 1.5 Turbo":                 "acestep",
+    # PAID (box gialla)
+    "Scribe v2 (PAID)":                   "scribe",
+    "ElevenLabs v3 TTS (PAID)":           "elevenlabs",
+    "ElevenLabs Flash v2.5 (PAID)":       "elevenflash",
+    "ElevenLabs Multilingual v2 (PAID)":  "eleven-multilingual-v2",
+    "ElevenLabs Music (PAID)":            "elevenmusic",
+    "ElevenLabs Sound Effects (PAID)":    "eleven-sfx",
+    "Qwen3-TTS Flash (PAID)":             "qwen-tts",
+    "Qwen3-TTS Instruct (PAID)":          "qwen-tts-instruct",
+    "Stable Audio 3 Medium (PAID)":       "stable-audio-3-medium",
+    "Stable Audio 3 Large (PAID)":        "stable-audio-3-large",
+    # ── VIDEO ─────────────────────────────────────
+    # FREE (box verde)
+    "LTX-2.3":                            "ltx-2",
+    "Nova Reel":                          "nova-reel",
+    # PAID (box gialla)
+    "Veo 3.1 Fast (PAID)":               "veo",
+    "Seedance Pro-Fast (PAID)":           "seedance-pro",
+    "Seedance 2.0 (PAID)":               "seedance-2.0",
+    "Wan 2.6 (PAID)":                    "wan",
+    "Wan 2.2 (PAID)":                    "wan-fast",
+    "Wan 2.7 (PAID)":                    "wan-pro",
+    "Wan 2.7 1080p (PAID)":              "wan-pro-1080p",
+    "Grok Video Pro (PAID)":             "grok-video-pro",
+    "Pruna p-video 720p (PAID)":         "p-video-720p",
+    "Pruna p-video 1080p (PAID)":        "p-video-1080p",
 }
 
 # Mappa inversa: ID API → nome visualizzato
 MODEL_ID_TO_DISPLAY = {v: k for k, v in MODEL_DISPLAY_TO_ID.items()}
 
 KNOWN_MODELS = {
-    "text": [k for k in MODEL_DISPLAY_TO_ID if k in [
-        "ChatGPT 4o mini", "ChatGPT 4o", "ChatGPT 4o Large", "ChatGPT o3 mini",
-        "ChatGPT 5.4 (PAID)", "ChatGPT 5.4 mini (PAID)",
-        "Claude 3 Haiku", "Claude 3.5 Sonnet (PAID)", "Claude 3.7 Sonnet (PAID)",
-        "Claude Opus 4.6 (PAID)", "Claude Opus 4.7 (PAID)",
-        "Gemini 2.0 Flash", "Gemini 2.5 Flash", "Gemini 2.5 Flash Thinking", "Gemini 2.5 Pro",
-        "DeepSeek V3", "DeepSeek R1 (PAID)",
-        "Mistral Small 3.2", "Mistral 7B", "Mistral Large (PAID)",
-        "Llama 4 Scout", "Llama 4 Maverick", "Llama 3.3 70B",
-        "Qwen2.5 Coder", "Qwen2.5 72B", "Qwen2.5 VL",
-        "Grok 3 (PAID)", "Grok 3 Large (PAID)",
-        "Perplexity (PAID)", "Perplexity Deep (PAID)", "Perplexity R1 (PAID)",
-        "Mercury", "Kimi", "GLM-4", "Phi-4",
-    ]],
-    "image": [k for k in MODEL_DISPLAY_TO_ID if k in [
-        "FLUX.1 Schnell", "FLUX.1 Dev", "FLUX.1 Realism", "FLUX.1 Anime", "FLUX.1 3D", "Turbo",
-        "FLUX.1 Pro (PAID)", "DALL-E 3 (PAID)", "DALL-E 3 HD (PAID)", "GPT Image 2 (PAID)",
-        "Seedream 3.0 (PAID)", "Seedream Pro (PAID)", "Seedream 5 (PAID)",
-        "Ideogram v4 Turbo (PAID)", "Ideogram v4 (PAID)", "Ideogram v4 Quality (PAID)",
-        "Wan Image (PAID)", "Wan Image Pro (PAID)",
-        "Grok Imagine (PAID)", "Grok Imagine Pro (PAID)", "Nova Canvas (PAID)",
-    ]],
-    "audio": [k for k in MODEL_DISPLAY_TO_ID if k in [
+    "text": [
+        # FREE (box verde)
+        "GPT-5 Nano", "GPT-5.4 Nano", "GPT-5.4 Mini", "GPT-5.4", "GPT-5.5",
+        "GPT Audio Mini", "GPT Audio 1.5",
+        "Nova Micro", "Nova 2 Lite",
+        "DeepSeek V4 Flash (Lite)", "DeepSeek V4 Pro",
+        "Mistral Small 3.2", "Mistral Small 4", "Mistral Large 3",
+        "Meta Llama 3.3 70B", "Meta Llama 4 Scout",
+        "Qwen3 Coder 30B", "Qwen3 VL 30B A3B Instruct", "Qwen3.7 Plus",
+        "Qwen3 VL 235B A22B Thinking", "Qwen3Guard 8B",
+        "MiniMax M2.7", "MiniMax M3",
+        "StepFun Step 3.5 Flash", "StepFun Step 3.7 Flash",
+        "Grok 4.20 Non-Reasoning", "Grok 4.20 Reasoning", "Grok 4.3",
+        "Perplexity Sonar", "Perplexity Sonar Pro", "Perplexity Sonar Reasoning",
+        "Moonshot Kimi K2.6", "Moonshot Kimi K2.7 Code",
+        "MIDIjourney", "MIDIjourney Large",
+        "Z.ai GLM-5.2", "Polly by @Itachi-1824",
+        # PAID (box gialla)
+        "Gemini 2.5 Flash Lite (PAID)", "Gemini 3.1 Flash Lite (PAID)",
+        "Gemini 3.1 Flash Lite Search (PAID)", "Google Gemini 2.5 Flash Search (PAID)",
+        "Gemini 3 Flash (PAID)", "Gemini 3.5 Flash (PAID)",
+        "Gemini 3.5 Flash Search (PAID)", "Gemini 3.1 Pro (PAID)",
+        "Gemma 4 26B (PAID)", "Mercury 2 (PAID)",
+        "Qwen3 Coder Next (PAID)", "Meta Llama 4 Maverick (PAID)",
+        "Claude Haiku 4.5 (PAID)", "Claude Sonnet 4.6 (PAID)",
+        "Claude Opus 4.6 (PAID)", "Claude Opus 4.7 (PAID)", "Claude Opus 4.8 (PAID)",
+    ],
+    "image": [
+        # FREE (box verde)
+        "Flux Schnell", "FLUX.2 Klein 4B", "FLUX.1 Kontext",
+        "GPT Image 1 Mini", "GPT Image 1.5",
+        "Z-Image Turbo", "Nova Canvas",
+        # PAID (box gialla)
+        "Pruna p-image (PAID)", "Pruna p-image-edit (PAID)",
+        "Grok Imagine (PAID)", "Grok Imagine Pro (PAID)",
+        "Seedream 4.0 (PAID)", "Seedream 4.5 Pro (PAID)", "Seedream 5.0 Lite (PAID)",
+        "Ideogram 4.0 Turbo (PAID)", "Ideogram 4.0 Balanced (PAID)", "Ideogram 4.0 Quality (PAID)",
+        "Wan 2.7 Image (PAID)", "Wan 2.7 Image Pro (PAID)",
+        "GPT Image 2 (PAID)",
+        "NanoBanana (PAID)", "NanoBanana 2 (PAID)", "NanoBanana Pro (PAID)",
+        "Qwen Image Plus (PAID)",
+    ],
+    "audio": [
+        # TTS voices OpenAI (parametro voice)
         "Nova", "Alloy", "Echo", "Fable", "Onyx", "Shimmer",
         "Ash", "Ballad", "Coral", "Sage", "Verse",
-        "ElevenLabs (PAID)", "ElevenLabs Flash (PAID)", "ElevenLabs Multilingual (PAID)",
-        "ElevenLabs Music (PAID)", "ElevenLabs SFX (PAID)",
-        "ACE Step (PAID)", "Stable Audio 3 (PAID)", "Stable Audio 3 Large (PAID)",
-    ]],
-    "video": [k for k in MODEL_DISPLAY_TO_ID if k in [
-        "Google Veo 2 (PAID)", "Seedance Pro (PAID)", "Seedance 2.0 (PAID)",
-        "Wan (PAID)", "Wan Fast (PAID)", "Wan Pro (PAID)", "Wan Pro 1080p (PAID)",
-        "Grok Video Pro (PAID)", "LTX Video 2 (PAID)", "Nova Reel (PAID)",
-    ]],
+        # FREE (box verde)
+        "Whisper Large V3", "AssemblyAI Universal-2",
+        "AssemblyAI Universal-3 Pro", "ACE-Step 1.5 Turbo",
+        # PAID (box gialla)
+        "Scribe v2 (PAID)",
+        "ElevenLabs v3 TTS (PAID)", "ElevenLabs Flash v2.5 (PAID)",
+        "ElevenLabs Multilingual v2 (PAID)", "ElevenLabs Music (PAID)",
+        "ElevenLabs Sound Effects (PAID)",
+        "Qwen3-TTS Flash (PAID)", "Qwen3-TTS Instruct (PAID)",
+        "Stable Audio 3 Medium (PAID)", "Stable Audio 3 Large (PAID)",
+    ],
+    "video": [
+        # FREE (box verde)
+        "LTX-2.3", "Nova Reel",
+        # PAID (box gialla)
+        "Veo 3.1 Fast (PAID)", "Seedance Pro-Fast (PAID)", "Seedance 2.0 (PAID)",
+        "Wan 2.6 (PAID)", "Wan 2.2 (PAID)", "Wan 2.7 (PAID)", "Wan 2.7 1080p (PAID)",
+        "Grok Video Pro (PAID)",
+        "Pruna p-video 720p (PAID)", "Pruna p-video 1080p (PAID)",
+    ],
 }
 
 # Converte nome visualizzato → ID API reale
@@ -196,8 +268,13 @@ TYPE_EMOJI = {"text": "💬", "image": "🖼️", "audio": "🔊", "video": "�
 #  HELPERS
 # ──────────────────────────────────────────────
 
-def get_key(user_id: int) -> str | None:
-    return USER_KEYS.get(user_id) or os.getenv("POLLINATIONS_KEY") or None
+def has_personal_key(user_id: int) -> bool:
+    """True se l'utente ha collegato il proprio account (sk_)."""
+    return bool(USER_KEYS.get(user_id) or os.getenv("POLLINATIONS_KEY"))
+
+def get_key(user_id: int) -> str:
+    """Ritorna la key da usare: sk_ utente → env → pk_ del bot (fallback)."""
+    return USER_KEYS.get(user_id) or os.getenv("POLLINATIONS_KEY") or APP_KEY
 
 def get_model(user_id: int, tipo: str) -> str:
     return clean_model(USER_MODELS.get(user_id, {}).get(tipo, DEFAULT_MODELS[tipo]))
@@ -220,8 +297,21 @@ def build_system_prompt(user_id: int, custom: str) -> str:
         f"Claude, Gemini, or any other AI name. {name_line}{extra}"
     )
 
-def auth_headers(key: str) -> dict:
-    return {"Authorization": f"Bearer {key}", "Content-Type": "application/json"}
+def auth_headers(key) -> dict:
+    h = {"Content-Type": "application/json"}
+    if key:
+        h["Authorization"] = f"Bearer {key}"
+    return h
+
+def is_free_model(name: str) -> bool:
+    return "(PAID)" not in name
+
+def available_models(tipo: str, user_id: int) -> list:
+    """Tutti i modelli se l'utente ha account, solo FREE (pk_-compatibili) altrimenti."""
+    models = KNOWN_MODELS[tipo]
+    if has_personal_key(user_id):
+        return models
+    return [m for m in models if is_free_model(m)]
 
 async def api_post_json(session, url, payload, key):
     async with session.post(url, headers=auth_headers(key), json=payload) as resp:
@@ -239,21 +329,37 @@ async def api_get_bytes(session, url):
         return await resp.read()
 
 def no_key_embed():
+    """Usato solo per audio/video che richiedono sempre un account."""
     return discord.Embed(
-        title="🔑 No API key connected",
+        title="🔑 Account required",
         description=(
-            "You need to connect your Pollinations key first!\n\n"
-            "**→ Use `/connect` and paste your `sk_...` key**\n\n"
-            "Get your key at [enter.pollinations.ai](https://enter.pollinations.ai)"
+            "This command requires a Pollinations account.\n\n"
+            "**→ Use `/connect` to link your account**\n\n"
+            "Get one free at [enter.pollinations.ai](https://enter.pollinations.ai)"
         ),
         color=0xED4245
     )
 
-def invalid_model_embed(tipo: str, name: str):
-    valid = "\n".join(f"`{m}`" for m in KNOWN_MODELS[tipo])
+def paid_model_no_key_embed(name: str) -> discord.Embed:
+    """Utente senza key tenta di usare un modello PAID."""
+    return discord.Embed(
+        title="🔒 Account required for this model",
+        description=(
+            f"`{name}` requires Pollen credits.\n\n"
+            "**→ Use `/connect` to link your Pollinations account**\n"
+            "Free models are available without an account!\n\n"
+            "Get one at [enter.pollinations.ai](https://enter.pollinations.ai)"
+        ),
+        color=0xFEE75C
+    )
+
+def invalid_model_embed(tipo: str, name: str, user_id: int = 0):
+    avail = available_models(tipo, user_id) if user_id else KNOWN_MODELS[tipo]
+    valid = "\n".join(f"`{m}`" for m in avail)
+    note  = "\n\n🔓 *Connect an account to unlock paid models.*" if user_id and not has_personal_key(user_id) else ""
     return discord.Embed(
         title="❌ Unknown model",
-        description=f"`{name}` is not a valid **{tipo}** model.\n\n**Available models:**\n{valid}",
+        description=f"`{name}` is not a valid **{tipo}** model.\n\n**Available models:**\n{valid}{note}",
         color=0xED4245
     )
 
@@ -280,15 +386,15 @@ async def on_ready():
 #  AUTOCOMPLETE per model name
 # ──────────────────────────────────────────────
 async def model_name_autocomplete(interaction: discord.Interaction, current: str):
-    tipo = interaction.namespace.type  # prende il valore già scelto per "type"
+    tipo = interaction.namespace.type
+    uid  = interaction.user.id
     if not tipo or tipo not in KNOWN_MODELS:
-        # Se non ha ancora scelto il tipo, mostra tutti
-        all_models = [m for models in KNOWN_MODELS.values() for m in models]
+        all_models = [m for t in KNOWN_MODELS for m in available_models(t, uid)]
         choices = [app_commands.Choice(name=m, value=m) for m in all_models if current.lower() in m.lower()]
     else:
         choices = [
             app_commands.Choice(name=m, value=m)
-            for m in KNOWN_MODELS[tipo]
+            for m in available_models(tipo, uid)
             if current.lower() in m.lower()
         ]
     return choices[:25]
@@ -431,12 +537,14 @@ async def cmd_text(interaction: discord.Interaction, prompt: str, system: str = 
         )
         return
 
-    key = get_key(interaction.user.id)
-    if not key:
-        await interaction.response.send_message(embed=no_key_embed(), ephemeral=True)
+    uid    = interaction.user.id
+    key    = get_key(uid)
+    model_name = USER_MODELS.get(uid, {}).get("text", DEFAULT_MODELS["text"])
+    if not is_free_model(model_name) and not has_personal_key(uid):
+        await interaction.response.send_message(embed=paid_model_no_key_embed(model_name), ephemeral=True)
         return
 
-    model  = get_model(interaction.user.id, "text")
+    model  = get_model(uid, "text")
     system = build_system_prompt(interaction.user.id, system)
     await interaction.response.defer(thinking=True)
 
@@ -479,7 +587,7 @@ async def cmd_text(interaction: discord.Interaction, prompt: str, system: str = 
 
         # Salva stato thread
         CHAT_THREADS[thread.id] = {
-            "user_id": interaction.user.id,
+            "user_id": uid,
             "model":   model,
             "system":  system,
             "key":     key,
@@ -556,13 +664,15 @@ async def on_message(message: discord.Message):
     app_commands.Choice(name="1024x1792 (portrait)",  value="1024x1792"),
 ])
 async def cmd_image(interaction: discord.Interaction, prompt: str, size: str = "1024x1024"):
-    key = get_key(interaction.user.id)
-    if not key:
-        await interaction.response.send_message(embed=no_key_embed(), ephemeral=True)
+    uid  = interaction.user.id
+    key  = get_key(uid)
+    model_name = USER_MODELS.get(uid, {}).get("image", DEFAULT_MODELS["image"])
+    if not is_free_model(model_name) and not has_personal_key(uid):
+        await interaction.response.send_message(embed=paid_model_no_key_embed(model_name), ephemeral=True)
         return
 
     await interaction.response.defer(thinking=True)
-    model = get_model(interaction.user.id, "image")
+    model = get_model(uid, "image")
 
     try:
         async with aiohttp.ClientSession() as session:
@@ -657,21 +767,28 @@ async def cmd_video(interaction: discord.Interaction, prompt: str):
 ])
 @app_commands.autocomplete(name=model_name_autocomplete)
 async def cmd_model(interaction: discord.Interaction, type: str, name: str):
-    # Validazione — il modello deve essere nella lista
+    uid = interaction.user.id
+    key = get_key(uid)
+
+    # Modello non nella lista globale
     if not is_valid_model(type, name):
-        await interaction.response.send_message(embed=invalid_model_embed(type, name), ephemeral=True)
+        await interaction.response.send_message(embed=invalid_model_embed(type, name, uid), ephemeral=True)
         return
 
-    uid = interaction.user.id
+    # Modello PAID senza account personale
+    if not is_free_model(name) and not has_personal_key(uid):
+        await interaction.response.send_message(embed=paid_model_no_key_embed(name), ephemeral=True)
+        return
+
     if uid not in USER_MODELS:
         USER_MODELS[uid] = dict(DEFAULT_MODELS)
 
-    old = USER_MODELS[uid].get(type, DEFAULT_MODELS[type])
+    prev = USER_MODELS[uid].get(type, DEFAULT_MODELS[type])
     USER_MODELS[uid][type] = name
 
     embed = discord.Embed(title="✅ Model updated", color=0x57F287)
     embed.add_field(name="Type",   value=f"{TYPE_EMOJI[type]} {type}", inline=True)
-    embed.add_field(name="Before", value=f"`{old}`",                   inline=True)
+    embed.add_field(name="Before", value=f"`{prev}`",                  inline=True)
     embed.add_field(name="Now",    value=f"`{clean_model(name)}`",     inline=True)
     if "(PAID)" in name:
         embed.add_field(name="⚠️ Note", value="This model requires Pollen credits at [enter.pollinations.ai](https://enter.pollinations.ai)", inline=False)
@@ -689,11 +806,18 @@ async def cmd_model(interaction: discord.Interaction, type: str, name: str):
     app_commands.Choice(name="🎬 Video", value="video"),
 ])
 async def cmd_models(interaction: discord.Interaction, type: str = "all"):
-    embed = discord.Embed(title=f"📋 Nov - Available Models", color=BOT_COLOR)
-    tipi  = [type] if type != "all" else ["text", "image", "audio", "video"]
+    uid      = interaction.user.id
+    has_key  = has_personal_key(uid)
+    tipi     = [type] if type != "all" else ["text", "image", "audio", "video"]
+
+    embed = discord.Embed(
+        title="📋 Nov - Available Models",
+        description="" if has_key else "🔓 *Showing free models only — `/connect` to unlock all*",
+        color=BOT_COLOR
+    )
     for t in tipi:
-        lista = "\n".join(f"`{m}`" for m in KNOWN_MODELS[t])
-        embed.add_field(name=f"{TYPE_EMOJI[t]} {t.capitalize()}", value=lista, inline=True)
+        lista = "\n".join(f"`{m}`" for m in available_models(t, uid))
+        embed.add_field(name=f"{TYPE_EMOJI[t]} {t.capitalize()}", value=lista or "*none*", inline=True)
     embed.set_footer(text="(PAID) = requires Pollen credits • /model to change")
     await interaction.response.send_message(embed=embed, ephemeral=True)
 

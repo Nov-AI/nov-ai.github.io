@@ -20,6 +20,9 @@ import urllib.parse
 import random
 from dotenv import load_dotenv
 
+# Richiede discord.py >= 2.4 (per allowed_installs / allowed_contexts → supporto User Install)
+# Aggiorna con: pip install -U discord.py
+
 load_dotenv()
 
 # ──────────────────────────────────────────────
@@ -31,7 +34,7 @@ AUTH_URL      = "https://enter.pollinations.ai/api/device"
 APP_KEY       = "pk_yQpEnADty90tWmr0"  # Nov App Key
 BOT_NAME      = "Nov"
 BOT_COLOR     = 0x5865F2
-BOT_VERSION   = "1.2.0"
+BOT_VERSION   = "1.3.0"
 
 # Chiavi per utente { user_id: "sk_..." }
 USER_KEYS: dict[int, str] = {}
@@ -409,7 +412,14 @@ def is_valid_model(tipo: str, name: str) -> bool:
 intents = discord.Intents.default()
 intents.message_content = True
 intents.messages = True
-bot = commands.Bot(command_prefix="!", intents=intents)
+bot = commands.Bot(
+    command_prefix="!",
+    intents=intents,
+    # Permette di installare Nov sul proprio account utente (non solo su un server)
+    allowed_installs=app_commands.AppInstallationType(guild=True, user=True),
+    # Permette di usare i comandi in server, DM e DM di gruppo
+    allowed_contexts=app_commands.AppCommandContext(guild=True, dm_channel=True, private_channel=True),
+)
 
 @bot.event
 async def on_ready():
@@ -567,13 +577,6 @@ async def cmd_forget(interaction: discord.Interaction):
 @bot.tree.command(name="text", description="Open an AI chat thread")
 @app_commands.describe(prompt="Your first message", system="Optional custom system prompt")
 async def cmd_text(interaction: discord.Interaction, prompt: str, system: str = ""):
-    if not interaction.guild:
-        await interaction.response.send_message(
-            embed=discord.Embed(title="❌ Server only", description="Use this command in a server channel.", color=0xED4245),
-            ephemeral=True
-        )
-        return
-
     uid    = interaction.user.id
     key    = get_key(uid)
     model_name = USER_MODELS.get(uid, {}).get("text", DEFAULT_MODELS["text"])
@@ -608,33 +611,46 @@ async def cmd_text(interaction: discord.Interaction, prompt: str, system: str = 
                     reply = await resp.text()
 
         # Risposta silenziosa all'interazione
-        await interaction.followup.send("💬 Opening chat thread...", ephemeral=True)
+        in_guild_text_channel = interaction.guild is not None and isinstance(interaction.channel, discord.TextChannel)
 
-        # Manda il messaggio nel canale direttamente
-        channel = interaction.channel
-        embed_intro = discord.Embed(
-            description=f"**{interaction.user.display_name}:** {prompt}",
-            color=BOT_COLOR
-        )
-        embed_intro.set_author(name=f"Nov Chat - {model_name}")
-        embed_intro.set_footer(text="Thread opened - just type here to keep chatting!")
-        msg = await channel.send(embed=embed_intro)
+        if in_guild_text_channel:
+            # Comportamento originale: apre un thread nel canale del server
+            await interaction.followup.send("💬 Opening chat thread...", ephemeral=True)
 
-        # Crea thread
-        thread = await msg.create_thread(
-            name=f"Nov - {interaction.user.display_name} - {prompt[:40]}",
-            auto_archive_duration=60
-        )
+            channel = interaction.channel
+            embed_intro = discord.Embed(
+                description=f"**{interaction.user.display_name}:** {prompt}",
+                color=BOT_COLOR
+            )
+            embed_intro.set_author(name=f"Nov Chat - {model_name}")
+            embed_intro.set_footer(text="Thread opened - just type here to keep chatting!")
+            msg = await channel.send(embed=embed_intro)
 
-        # Manda risposta nel thread come testo normale
+            target_channel = await msg.create_thread(
+                name=f"Nov - {interaction.user.display_name} - {prompt[:40]}",
+                auto_archive_duration=60
+            )
+        else:
+            # DM, DM di gruppo o canale senza supporto thread: risponde qui direttamente,
+            # la conversazione continua semplicemente scrivendo in questo stesso canale
+            embed_intro = discord.Embed(
+                description=f"**{interaction.user.display_name}:** {prompt}",
+                color=BOT_COLOR
+            )
+            embed_intro.set_author(name=f"Nov Chat - {model_name}")
+            embed_intro.set_footer(text="Just keep typing here to continue - say /close to end.")
+            await interaction.followup.send(embed=embed_intro)
+            target_channel = interaction.channel
+
+        # Manda risposta come testo normale
         if len(reply) <= 2000:
-            await thread.send(reply)
+            await target_channel.send(reply)
         else:
             for chunk in [reply[i:i+2000] for i in range(0, len(reply), 2000)]:
-                await thread.send(chunk)
+                await target_channel.send(chunk)
 
-        # Salva stato thread
-        CHAT_THREADS[thread.id] = {
+        # Salva stato thread/canale
+        CHAT_THREADS[target_channel.id] = {
             "user_id":  uid,
             "model":    model,
             "system":   system,
@@ -658,10 +674,6 @@ async def on_message(message: discord.Message):
     if message.author.bot:
         return
 
-    if not isinstance(message.channel, discord.Thread):
-        await bot.process_commands(message)
-        return
-
     thread_data = CHAT_THREADS.get(message.channel.id)
     if not thread_data:
         await bot.process_commands(message)
@@ -677,7 +689,8 @@ async def on_message(message: discord.Message):
             description="Use `/text` to start a new chat!",
             color=0x57F287
         ))
-        await message.channel.edit(archived=True, locked=True)
+        if isinstance(message.channel, discord.Thread):
+            await message.channel.edit(archived=True, locked=True)
         return
 
     async with message.channel.typing():
@@ -964,6 +977,125 @@ async def cmd_info(interaction: discord.Interaction):
     await interaction.response.send_message(embed=embed, ephemeral=True)
 
 # ──────────────────────────────────────────────
+#  /privtext  — thread privato (solo tu e il bot)
+# ──────────────────────────────────────────────
+@bot.tree.command(name="privtext", description="Open a private AI chat thread (only you and Nov can see it)")
+@app_commands.describe(prompt="Your first message", system="Optional custom system prompt")
+async def cmd_privtext(interaction: discord.Interaction, prompt: str, system: str = ""):
+    in_guild_text_channel = interaction.guild is not None and isinstance(interaction.channel, discord.TextChannel)
+
+    uid        = interaction.user.id
+    key        = get_key(uid)
+    model_name = USER_MODELS.get(uid, {}).get("text", DEFAULT_MODELS["text"])
+    if not is_free_model(model_name) and not has_personal_key(uid):
+        await interaction.response.send_message(embed=paid_model_no_key_embed(model_name), ephemeral=True)
+        return
+
+    model      = get_model(uid, "text")
+    sys_prompt = build_system_prompt(uid, system)
+    await interaction.response.defer(thinking=True, ephemeral=in_guild_text_channel)
+
+    try:
+        async with aiohttp.ClientSession() as session:
+            if has_personal_key(uid):
+                payload = {
+                    "model": model,
+                    "messages": [
+                        {"role": "system", "content": sys_prompt},
+                        {"role": "user",   "content": prompt},
+                    ],
+                    "max_tokens": 1500,
+                }
+                data  = await api_post_json(session, f"{BASE_URL}/chat/completions", payload, key)
+                reply = data["choices"][0]["message"]["content"]
+            else:
+                encoded = urllib.parse.quote(prompt)
+                async with session.get(
+                    f"https://text.pollinations.ai/{encoded}?model={model}&system={urllib.parse.quote(sys_prompt)}"
+                ) as resp:
+                    resp.raise_for_status()
+                    reply = await resp.text()
+
+        if in_guild_text_channel:
+            # Crea thread privato — visibile solo all'utente, al bot e ai moderatori
+            channel = interaction.channel
+            target_channel = await channel.create_thread(
+                name=f"🔒 Nov · {interaction.user.display_name} · {prompt[:35]}",
+                type=discord.ChannelType.private_thread,
+                invitable=False,          # solo moderatori possono aggiungere altri
+                auto_archive_duration=60,
+            )
+
+            # Aggiungi l'utente al thread (necessario esplicitamente nei private thread)
+            await target_channel.add_user(interaction.user)
+
+            # Primo messaggio nel thread
+            intro = discord.Embed(
+                description=f"🔒 **Private thread** — only you and Nov can see this.\n\n**You:** {prompt}",
+                color=0x2B2D31
+            )
+            intro.set_author(name=f"Nov Chat (Private) - {model_name}")
+            intro.set_footer(text="Just type here to keep chatting. Use /close to end.")
+            await target_channel.send(embed=intro)
+        else:
+            # DM o DM di gruppo: è già privato di natura, risponde direttamente qui
+            intro = discord.Embed(
+                description=f"🔒 **Private chat** — only you and Nov can see this.\n\n**You:** {prompt}",
+                color=0x2B2D31
+            )
+            intro.set_author(name=f"Nov Chat (Private) - {model_name}")
+            intro.set_footer(text="Just keep typing here to continue. Use /close to end.")
+            await interaction.followup.send(embed=intro)
+            target_channel = interaction.channel
+
+        # Risposta del bot
+        if len(reply) <= 2000:
+            await target_channel.send(reply)
+        else:
+            for chunk in [reply[i:i+2000] for i in range(0, len(reply), 2000)]:
+                await target_channel.send(chunk)
+
+        # Salva stato thread/canale
+        CHAT_THREADS[target_channel.id] = {
+            "user_id": uid,
+            "model":   model,
+            "system":  sys_prompt,
+            "key":     key,
+            "has_key": has_personal_key(uid),
+            "private": True,
+            "history": [
+                {"role": "system",    "content": sys_prompt},
+                {"role": "user",      "content": prompt},
+                {"role": "assistant", "content": reply},
+            ]
+        }
+
+        if in_guild_text_channel:
+            await interaction.followup.send(
+                f"🔒 Private thread opened! → {target_channel.mention}",
+                ephemeral=True
+            )
+
+    except discord.Forbidden:
+        await interaction.followup.send(
+            embed=discord.Embed(
+                title="❌ Missing permissions",
+                description=(
+                    "Nov can't create private threads here.\n\n"
+                    "Make sure the server has **Community** enabled and Nov has "
+                    "**Create Private Threads** permission."
+                ),
+                color=0xED4245
+            ),
+            ephemeral=True
+        )
+    except Exception as e:
+        await interaction.followup.send(
+            embed=discord.Embed(title="❌ Error", description=f"`{e}`", color=0xED4245),
+            ephemeral=True
+        )
+
+# ──────────────────────────────────────────────
 #  /help
 # ──────────────────────────────────────────────
 @bot.tree.command(name="help", description="Show all Nov commands")
@@ -971,9 +1103,9 @@ async def cmd_help(interaction: discord.Interaction):
     embed = discord.Embed(title=f"✨ Nov - Commands", description="AI-powered bot by Pollinations", color=BOT_COLOR)
     embed.add_field(name="🔑 Setup",     value="`/connect` - Connect your Pollinations key\n`/disconnect` - Remove your key\n`/info` - View your settings", inline=False)
     embed.add_field(name="🧠 Memory",    value="`/remember [key] [value]` - Save info about you\n`/forget` - Clear your memory", inline=False)
-    embed.add_field(name="💬 Generate",  value="`/text` - Open AI chat thread\n`/image` - Generate an image\n`/audio` - Text to speech\n`/video` - Generate a video", inline=False)
+    embed.add_field(name="💬 Generate",  value="`/text` - Open AI chat thread\n`/privtext` - 🔒 Private chat thread\n`/image` - Generate an image\n`/audio` - Text to speech\n`/video` - Generate a video", inline=False)
     embed.add_field(name="⚙️ Models",    value="`/model` - Change AI model (with autocomplete!)\n`/models` - List available models", inline=False)
-    embed.set_footer(text=f"Nov v{BOT_VERSION} - enter.pollinations.ai")
+    embed.set_footer(text=f"Nov v{BOT_VERSION} - works in DMs too! - enter.pollinations.ai")
     await interaction.response.send_message(embed=embed)
 
 # ──────────────────────────────────────────────

@@ -190,6 +190,8 @@ MODEL_DISPLAY_TO_ID = {
     "ElevenLabs Sound Effects (PAID)":    "eleven-sfx",
     "Qwen3-TTS Flash (PAID)":             "qwen-tts",
     "Qwen3-TTS Instruct (PAID)":          "qwen-tts-instruct",
+    "Stable Audio 2.5 (PAID)":            "stable-audio-2.5",
+    "Stable Audio 3 (PAID)":              "stable-audio-3",
     "Stable Audio 3 Medium (PAID)":       "stable-audio-3-medium",
     "Stable Audio 3 Large (PAID)":        "stable-audio-3-large",
     # ── VIDEO ─────────────────────────────────────
@@ -271,6 +273,8 @@ KNOWN_MODELS = {
         "ElevenLabs Sound Effects (PAID)",
         "ElevenLabs v3 TTS (PAID)",
         "ElevenLabs Multilingual v2 (PAID)",
+        "Stable Audio 2.5 (PAID)",
+        "Stable Audio 3 (PAID)",
         "Stable Audio 3 Medium (PAID)",
         "ElevenLabs Music (PAID)",
         "Stable Audio 3 Large (PAID)",

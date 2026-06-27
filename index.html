@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>NovAI — AI for Discord</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #080808;
+    --surface:   #111111;
+    --border:    #1c1c1c;
+    --muted:     #3a3a3a;
+    --dim:       #888888;
+    --fg:        #f0f0f0;
+    --white:     #ffffff;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Space Grotesk', sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--sans);
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 22px 48px;
+    border-bottom: 1px solid transparent;
+    transition: border-color .3s, background .3s;
+  }
+  nav.scrolled {
+    background: rgba(8,8,8,.85);
+    backdrop-filter: blur(16px);
+    border-color: var(--border);
+  }
+  .nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+  }
+  .nav-logo svg { width: 28px; height: 28px; }
+  .nav-wordmark {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: .12em;
+    color: var(--white);
+    text-transform: uppercase;
+  }
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    list-style: none;
+  }
+  .nav-links a {
+    font-size: 13px;
+    font-weight: 400;
+    letter-spacing: .04em;
+    color: var(--dim);
+    text-decoration: none;
+    transition: color .2s;
+  }
+  .nav-links a:hover { color: var(--fg); }
+  .btn-nav {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--white) !important;
+    border: 1px solid var(--muted);
+    padding: 8px 20px;
+    border-radius: 2px;
+    transition: border-color .2s, background .2s !important;
+  }
+  .btn-nav:hover {
+    border-color: var(--white) !important;
+    background: rgba(255,255,255,.04);
+  }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 120px 24px 80px;
+    position: relative;
+    text-align: center;
+  }
+
+  /* subtle grid bg */
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 40%, black 20%, transparent 80%);
+  }
+
+  .hero-logo {
+    width: 96px;
+    height: 96px;
+    margin-bottom: 48px;
+    position: relative;
+  }
+
+  /* ASCII hero title */
+  .hero-ascii-wrap {
+    width: 100%;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 32px;
+  }
+  .hero-ascii {
+    font-family: 'Courier New', 'Lucida Console', 'DejaVu Sans Mono', monospace;
+    font-size: 11px;
+    font-weight: 400;
+    line-height: 1.18;
+    letter-spacing: 0;
+    color: var(--white);
+    white-space: pre;
+    position: relative;
+    opacity: .95;
+    filter: drop-shadow(0 0 24px rgba(255,255,255,.1));
+    transform-origin: center top;
+  }
+
+  .hero-tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin-bottom: 20px;
+  }
+
+  .hero-sub {
+    font-size: 15px;
+    font-weight: 300;
+    color: var(--dim);
+    letter-spacing: .02em;
+    line-height: 1.6;
+    max-width: 420px;
+    margin-bottom: 48px;
+  }
+
+  .hero-sub span {
+    color: var(--fg);
+  }
+
+  .hero-cta {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+    width: 100%;
+    max-width: 280px;
+  }
+
+  .btn-discord, .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    width: 100%;
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    text-decoration: none;
+    padding: 14px 28px;
+    border-radius: 2px;
+  }
+  .btn-discord {
+    background: #5865F2;
+    border: 1px solid #5865F2;
+    color: #ffffff;
+    transition: opacity .2s;
+  }
+  .btn-discord:hover { opacity: .82; }
+  .btn-ghost {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--fg);
+    transition: border-color .2s;
+  }
+  .btn-ghost:hover { border-color: var(--muted); }
+  .divider {
+    width: 100%;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ── SECTION ── */
+  section {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 96px 24px;
+  }
+
+  .section-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 40px;
+  }
+
+  /* ── COMMANDS ── */
+  .commands-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+  }
+
+  .cmd-card {
+    background: var(--bg);
+    padding: 28px 24px;
+    transition: background .2s;
+  }
+  .cmd-card:hover { background: var(--surface); }
+
+  .cmd-name {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--white);
+    margin-bottom: 8px;
+    letter-spacing: .02em;
+  }
+
+  .cmd-desc {
+    font-size: 13px;
+    font-weight: 300;
+    color: var(--dim);
+    line-height: 1.5;
+    letter-spacing: .01em;
+  }
+
+  /* ── FREE/PAID ── */
+  .tiers {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+  }
+
+  .tier-card {
+    background: var(--bg);
+    padding: 36px 32px;
+  }
+
+  .tier-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 20px;
+  }
+
+  .tier-title {
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--white);
+    margin-bottom: 24px;
+    letter-spacing: -.01em;
+  }
+
+  .tier-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .tier-list li {
+    font-size: 13px;
+    font-weight: 300;
+    color: var(--dim);
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    line-height: 1.4;
+  }
+
+  .tier-list li::before {
+    content: '—';
+    color: var(--muted);
+    flex-shrink: 0;
+    font-family: var(--mono);
+    font-size: 11px;
+    margin-top: 1px;
+  }
+
+  /* ── STACK ── */
+  .stack-row {
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--border);
+  }
+  .stack-row + .stack-row { border-top: none; }
+
+  .stack-num {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    padding: 20px 24px;
+    border-right: 1px solid var(--border);
+    min-width: 60px;
+    letter-spacing: .1em;
+  }
+
+  .stack-name {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--fg);
+    padding: 20px 24px;
+    border-right: 1px solid var(--border);
+    min-width: 200px;
+  }
+
+  .stack-desc {
+    font-size: 13px;
+    font-weight: 300;
+    color: var(--dim);
+    padding: 20px 24px;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 40px 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .footer-left {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: .06em;
+  }
+
+  .footer-right {
+    font-size: 11px;
+    color: var(--muted);
+    font-family: var(--mono);
+    letter-spacing: .06em;
+  }
+
+  .footer-right a {
+    color: var(--dim);
+    text-decoration: none;
+    transition: color .2s;
+  }
+  .footer-right a:hover { color: var(--fg); }
+
+  /* ── SCROLL FADE ── */
+  .fade-in {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity .6s ease, transform .6s ease;
+  }
+  .fade-in.visible {
+    opacity: 1;
+    transform: none;
+  }
+
+  @media (max-width: 640px) {
+    nav { padding: 18px 20px; }
+    .nav-links { display: none; }
+    .tiers { grid-template-columns: 1fr; }
+    footer { flex-direction: column; align-items: flex-start; }
+    section { padding: 64px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="nav">
+  <a class="nav-logo" href="#">
+    <!-- Inline N logo -->
+    <img src="logo.png" alt="NovAI" style="width:28px;height:28px;object-fit:contain;"/>
+    <span class="nav-wordmark">NovAI</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#commands">Commands</a></li>
+    <li><a href="#access">Access</a></li>
+    <li><a href="#stack">Stack</a></li>
+    <li><a href="https://github.com/Nov-AI/NovAI" target="_blank" class="btn-nav">GitHub ↗</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-logo">
+    <img src="logo.png" alt="NovAI logo" style="width:100%;height:100%;object-fit:contain;"/>
+  </div>
+
+  <!-- ASCII art rendered on canvas for pixel-perfect alignment -->
+  <div class="hero-ascii-wrap">
+    <canvas id="ascii-canvas" style="max-width:100%;height:auto;image-rendering:crisp-edges;opacity:.95;filter:drop-shadow(0 0 24px rgba(255,255,255,.1));"></canvas>
+  </div>
+
+  <p class="hero-tag">Discord · Pollinations AI · v1.2.0</p>
+  <p class="hero-sub">Generate <span>text</span>, <span>images</span>, <span>audio</span>, and <span>video</span> — directly inside your Discord server.</p>
+
+  <div class="hero-cta">
+    <a href="https://discord.com/oauth2/authorize?client_id=1520183989200093205&permissions=8&integration_type=0&scope=bot+applications.commands" target="_blank" class="btn-discord">
+      <svg width="16" height="16" viewBox="0 0 127.14 96.36" fill="currentColor"><path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,122.09,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,46,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5-12.74,11.44-12.74S96.23,46,96.12,53,91.08,65.69,84.69,65.69Z"/></svg>
+      Add to Discord
+    </a>
+    <a href="https://github.com/Nov-AI/NovAI" target="_blank" class="btn-ghost">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+      View on GitHub
+    </a>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- COMMANDS -->
+<section id="commands">
+  <p class="section-label fade-in">Commands</p>
+  <div class="commands-grid fade-in">
+    <div class="cmd-card">
+      <div class="cmd-name">/text [prompt]</div>
+      <div class="cmd-desc">Open a persistent AI chat thread — keep typing to continue the conversation.</div>
+    </div>
+    <div class="cmd-card">
+      <div class="cmd-name">/image [prompt]</div>
+      <div class="cmd-desc">Generate an image from a text prompt using Flux or any connected image model.</div>
+    </div>
+    <div class="cmd-card">
+      <div class="cmd-name">/audio [text]</div>
+      <div class="cmd-desc">Convert text to speech using 11 OpenAI TTS voices including Nova, Echo, and Onyx.</div>
+    </div>
+    <div class="cmd-card">
+      <div class="cmd-name">/video [prompt]</div>
+      <div class="cmd-desc">Generate a video clip. Requires Pollen credits via your connected account.</div>
+    </div>
+    <div class="cmd-card">
+      <div class="cmd-name">/model [type] [name]</div>
+      <div class="cmd-desc">Switch the AI model with autocomplete — text, image, audio, or video.</div>
+    </div>
+    <div class="cmd-card">
+      <div class="cmd-name">/connect</div>
+      <div class="cmd-desc">Link your Pollinations account via device flow to unlock paid models and credits.</div>
+    </div>
+    <div class="cmd-card">
+      <div class="cmd-name">/remember [key] [value]</div>
+      <div class="cmd-desc">Save info NovAI will remember about you across sessions.</div>
+    </div>
+    <div class="cmd-card">
+      <div class="cmd-name">/models · /info · /help</div>
+      <div class="cmd-desc">List available models, view your current settings, or see all commands.</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ACCESS TIERS -->
+<section id="access">
+  <p class="section-label fade-in">Access</p>
+  <div class="tiers fade-in">
+    <div class="tier-card">
+      <div class="tier-label">Without account</div>
+      <div class="tier-title">Free tier</div>
+      <ul class="tier-list">
+        <li>12 free text models — GPT‑5.4 Nano default</li>
+        <li>Flux Schnell image generation</li>
+        <li>11 OpenAI TTS voices</li>
+        <li>No sign-up required</li>
+      </ul>
+    </div>
+    <div class="tier-card" style="border-left: 1px solid var(--border);">
+      <div class="tier-label">With Pollinations account</div>
+      <div class="tier-title">Full access</div>
+      <ul class="tier-list">
+        <li>All text models — GPT‑5.5, Gemini, Claude, Grok, and more</li>
+        <li>All image models — Ideogram, Seedream, Grok Imagine</li>
+        <li>Video generation via Veo 3.1</li>
+        <li>BYOP — your own Pollen credits, your usage</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- STACK -->
+<section id="stack">
+  <p class="section-label fade-in">Stack</p>
+  <div class="fade-in">
+    <div class="stack-row">
+      <span class="stack-num">01</span>
+      <span class="stack-name">discord.py</span>
+      <span class="stack-desc">Bot framework — slash commands, threads, interactions</span>
+    </div>
+    <div class="stack-row">
+      <span class="stack-num">02</span>
+      <span class="stack-name">Pollinations AI</span>
+      <span class="stack-desc">Inference backend — text, image, audio, video models</span>
+    </div>
+    <div class="stack-row">
+      <span class="stack-num">03</span>
+      <span class="stack-name">aiohttp</span>
+      <span class="stack-desc">Async HTTP client for API requests</span>
+    </div>
+    <div class="stack-row">
+      <span class="stack-num">04</span>
+      <span class="stack-name">Railway</span>
+      <span class="stack-desc">Hosting — deploy via GitHub, zero config</span>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- FOOTER -->
+<footer>
+  <span class="footer-left">NovAI v1.2.0 — not affiliated with Pollinations AI</span>
+  <span class="footer-right">
+    <a href="https://github.com/Nov-AI/NovAI" target="_blank">github.com/Nov-AI/NovAI</a>
+  </span>
+</footer>
+
+<script>
+  // Nav scroll
+  const nav = document.getElementById('nav');
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 40);
+  });
+
+  // Render ASCII art on canvas — forces fixed character spacing so box-drawing chars align perfectly
+  (function renderAscii() {
+    const lines = [
+      '███╗   ██╗ ██████╗ ██╗   ██╗ █████╗ ██╗',
+      '████╗  ██║██╔═══██╗██║   ██║██╔══██╗██║',
+      '██╔██╗ ██║██║   ██║██║   ██║███████║██║',
+      '██║╚██╗██║██║   ██║╚██╗ ██╔╝██╔══██║██║',
+      '██║ ╚████║╚██████╔╝ ╚████╔╝ ██║  ██║██║',
+      '╚═╝  ╚═══╝ ╚═════╝   ╚═══╝  ╚═╝  ╚═╝╚═╝'
+    ];
+
+    const DPR    = window.devicePixelRatio || 1;
+    const FS     = 13;           // font size px (logical)
+    const LH     = FS * 1.25;   // line height
+    const FONT   = `${FS * DPR}px "Courier New", monospace`;
+    const PAD    = 2 * DPR;
+
+    // Probe character width with a temp canvas
+    const probe = document.createElement('canvas');
+    const px    = probe.getContext('2d');
+    px.font     = FONT;
+    const CW    = px.measureText('█').width;   // use the block char itself as the reference
+
+    const maxChars = Math.max(...lines.map(l => [...l].length));
+    const W = Math.ceil(maxChars * CW) + PAD * 2;
+    const H = Math.ceil(lines.length * LH * DPR) + PAD * 2;
+
+    const canvas = document.getElementById('ascii-canvas');
+    canvas.width  = W;
+    canvas.height = H;
+    // CSS display size
+    canvas.style.width  = Math.round(W / DPR) + 'px';
+    canvas.style.height = Math.round(H / DPR) + 'px';
+
+    const ctx = canvas.getContext('2d');
+    ctx.font      = FONT;
+    ctx.fillStyle = '#ffffff';
+    ctx.textBaseline = 'top';
+
+    lines.forEach((line, row) => {
+      [...line].forEach((char, col) => {
+        ctx.fillText(char, PAD + col * CW, PAD + row * LH * DPR);
+      });
+    });
+  })();
+
+  // Fade-in on scroll
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>

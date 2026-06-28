@@ -4,6 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>NovAI — AI for Discord</title>
+<meta name="description" content="Generate text, images, audio and video inside Discord. Powered by Pollinations AI."/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
@@ -11,13 +12,16 @@
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --bg:        #080808;
-    --surface:   #111111;
-    --border:    #1c1c1c;
-    --muted:     #3a3a3a;
-    --dim:       #888888;
-    --fg:        #f0f0f0;
-    --white:     #ffffff;
+    --bg:      #080808;
+    --surface: #111111;
+    --card:    #0d0d0d;
+    --border:  #1c1c1c;
+    --muted:   #3a3a3a;
+    --dim:     #666666;
+    --fg:      #d8d8d8;
+    --white:   #ffffff;
+    --discord: #5865F2;
+    --green:   #3ecf8e;
     --mono: 'JetBrains Mono', monospace;
     --sans: 'Space Grotesk', sans-serif;
   }
@@ -41,13 +45,13 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 22px 48px;
+    padding: 20px 48px;
     border-bottom: 1px solid transparent;
     transition: border-color .3s, background .3s;
   }
   nav.scrolled {
-    background: rgba(8,8,8,.85);
-    backdrop-filter: blur(16px);
+    background: rgba(8,8,8,.9);
+    backdrop-filter: blur(20px);
     border-color: var(--border);
   }
   .nav-logo {
@@ -56,7 +60,6 @@
     gap: 10px;
     text-decoration: none;
   }
-  .nav-logo svg { width: 28px; height: 28px; }
   .nav-wordmark {
     font-family: var(--mono);
     font-size: 13px;
@@ -68,16 +71,15 @@
   .nav-links {
     display: flex;
     align-items: center;
-    gap: 32px;
+    gap: 28px;
     list-style: none;
   }
   .nav-links a {
     font-size: 13px;
-    font-weight: 400;
-    letter-spacing: .04em;
     color: var(--dim);
     text-decoration: none;
     transition: color .2s;
+    letter-spacing: .02em;
   }
   .nav-links a:hover { color: var(--fg); }
   .btn-nav {
@@ -88,7 +90,7 @@
     text-transform: uppercase;
     color: var(--white) !important;
     border: 1px solid var(--muted);
-    padding: 8px 20px;
+    padding: 8px 18px;
     border-radius: 2px;
     transition: border-color .2s, background .2s !important;
   }
@@ -96,6 +98,21 @@
     border-color: var(--white) !important;
     background: rgba(255,255,255,.04);
   }
+  .btn-add-nav {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--white) !important;
+    background: var(--discord);
+    border: 1px solid var(--discord);
+    padding: 8px 18px;
+    border-radius: 2px;
+    text-decoration: none;
+    transition: opacity .2s;
+  }
+  .btn-add-nav:hover { opacity: .8; }
 
   /* ── HERO ── */
   .hero {
@@ -108,82 +125,83 @@
     position: relative;
     text-align: center;
   }
-
-  /* subtle grid bg */
   .hero::before {
     content: '';
     position: absolute;
     inset: 0;
     pointer-events: none;
     background-image:
-      linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+      linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px);
     background-size: 48px 48px;
     mask-image: radial-gradient(ellipse 80% 60% at 50% 40%, black 20%, transparent 80%);
   }
-
   .hero-logo {
-    width: min(160px, 50vw);
-    height: min(160px, 50vw);
-    margin-bottom: 48px;
+    width: min(120px, 40vw);
+    height: min(120px, 40vw);
+    margin-bottom: 40px;
     position: relative;
   }
-
-  /* ASCII hero title */
   .hero-ascii-wrap {
     width: 100%;
     overflow: hidden;
     display: flex;
     justify-content: center;
-    margin-bottom: 32px;
+    margin-bottom: 28px;
   }
-  .hero-ascii {
-    font-family: 'Courier New', 'Lucida Console', 'DejaVu Sans Mono', monospace;
-    font-size: 11px;
-    font-weight: 400;
-    line-height: 1.18;
-    letter-spacing: 0;
-    color: var(--white);
-    white-space: pre;
-    position: relative;
-    opacity: .95;
-    filter: drop-shadow(0 0 24px rgba(255,255,255,.1));
-    transform-origin: center top;
-  }
-
   .hero-tag {
     font-family: var(--mono);
     font-size: 11px;
     font-weight: 400;
-    letter-spacing: .18em;
+    letter-spacing: .2em;
     text-transform: uppercase;
     color: var(--dim);
     margin-bottom: 20px;
   }
-
+  .hero-tag .v { color: var(--muted); }
   .hero-sub {
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 300;
     color: var(--dim);
-    letter-spacing: .02em;
-    line-height: 1.6;
-    max-width: 420px;
-    margin-bottom: 48px;
+    letter-spacing: .01em;
+    line-height: 1.65;
+    max-width: 460px;
+    margin-bottom: 16px;
   }
-
-  .hero-sub span {
-    color: var(--fg);
+  .hero-sub span { color: var(--fg); }
+  .hero-stats {
+    display: flex;
+    gap: 32px;
+    margin-bottom: 44px;
+    flex-wrap: wrap;
+    justify-content: center;
   }
-
+  .hero-stat {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .hero-stat::before {
+    content: '';
+    display: block;
+    width: 4px;
+    height: 4px;
+    background: var(--muted);
+    border-radius: 50%;
+  }
   .hero-cta {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
     align-items: center;
     width: 100%;
     max-width: 280px;
   }
-
   .btn-discord, .btn-ghost {
     display: inline-flex;
     align-items: center;
@@ -193,16 +211,16 @@
     font-family: var(--mono);
     font-size: 12px;
     font-weight: 500;
-    letter-spacing: .14em;
+    letter-spacing: .12em;
     text-transform: uppercase;
     text-decoration: none;
     padding: 14px 28px;
     border-radius: 2px;
   }
   .btn-discord {
-    background: #5865F2;
-    border: 1px solid #5865F2;
-    color: #ffffff;
+    background: var(--discord);
+    border: 1px solid var(--discord);
+    color: #fff;
     transition: opacity .2s;
   }
   .btn-discord:hover { opacity: .82; }
@@ -213,63 +231,263 @@
     transition: border-color .2s;
   }
   .btn-ghost:hover { border-color: var(--muted); }
-  .divider {
-    width: 100%;
-    height: 1px;
-    background: var(--border);
-  }
+
+  /* ── DIVIDER ── */
+  .divider { width: 100%; height: 1px; background: var(--border); }
 
   /* ── SECTION ── */
   section {
-    max-width: 900px;
+    max-width: 960px;
     margin: 0 auto;
-    padding: 96px 24px;
+    padding: 80px 24px;
   }
-
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 40px;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
   .section-label {
     font-family: var(--mono);
     font-size: 10px;
     font-weight: 500;
-    letter-spacing: .2em;
+    letter-spacing: .22em;
     text-transform: uppercase;
     color: var(--muted);
-    margin-bottom: 40px;
+  }
+  .section-note {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: .06em;
   }
 
-  /* ── COMMANDS ── */
-  .commands-grid {
+  /* ── QUICK START ── */
+  .steps {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    grid-template-columns: repeat(3,1fr);
     gap: 1px;
     background: var(--border);
     border: 1px solid var(--border);
   }
-
-  .cmd-card {
+  .step {
     background: var(--bg);
-    padding: 28px 24px;
+    padding: 32px 28px;
     transition: background .2s;
+    position: relative;
   }
-  .cmd-card:hover { background: var(--surface); }
-
-  .cmd-name {
+  .step:hover { background: var(--surface); }
+  .step-num {
     font-family: var(--mono);
-    font-size: 13px;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: .14em;
+    margin-bottom: 20px;
+    display: block;
+  }
+  .step-title {
+    font-size: 15px;
     font-weight: 500;
     color: var(--white);
-    margin-bottom: 8px;
-    letter-spacing: .02em;
+    margin-bottom: 10px;
+    letter-spacing: -.01em;
   }
-
-  .cmd-desc {
+  .step-desc {
     font-size: 13px;
     font-weight: 300;
     color: var(--dim);
-    line-height: 1.5;
-    letter-spacing: .01em;
+    line-height: 1.6;
+  }
+  .step-desc a {
+    color: var(--fg);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .step-code {
+    display: inline-block;
+    margin-top: 12px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--fg);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 6px 12px;
+    border-radius: 2px;
+    letter-spacing: .04em;
   }
 
-  /* ── FREE/PAID ── */
+  /* ── COMMANDS ── */
+  .cmd-categories {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+  .cmd-group {
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .cmd-group + .cmd-group { border-top: none; }
+  .cmd-group-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .cmd-rows {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1px;
+    background: var(--border);
+  }
+  .cmd-card {
+    background: var(--bg);
+    padding: 22px 20px;
+    transition: background .2s;
+  }
+  .cmd-card:hover { background: var(--surface); }
+  .cmd-name {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--white);
+    margin-bottom: 6px;
+    letter-spacing: .02em;
+  }
+  .cmd-desc {
+    font-size: 12px;
+    font-weight: 300;
+    color: var(--dim);
+    line-height: 1.55;
+  }
+  .cmd-badge {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 2px;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+  .badge-account { background: rgba(88,101,242,.15); color: #8b97ff; border: 1px solid rgba(88,101,242,.3); }
+  .badge-free    { background: rgba(62,207,142,.1); color: #3ecf8e; border: 1px solid rgba(62,207,142,.25); }
+
+  /* ── MODELS ── */
+  .model-tabs {
+    display: flex;
+    gap: 0;
+    border: 1px solid var(--border);
+    border-bottom: none;
+    width: fit-content;
+    margin-bottom: 0;
+  }
+  .model-tab {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--dim);
+    padding: 10px 20px;
+    cursor: pointer;
+    border-right: 1px solid var(--border);
+    background: var(--bg);
+    transition: color .2s, background .2s;
+    user-select: none;
+  }
+  .model-tab:last-child { border-right: none; }
+  .model-tab:hover { color: var(--fg); }
+  .model-tab.active { color: var(--white); background: var(--surface); }
+  .model-panels {
+    border: 1px solid var(--border);
+  }
+  .model-panel { display: none; }
+  .model-panel.active { display: block; }
+  .model-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1px;
+    background: var(--border);
+  }
+  .model-item {
+    background: var(--bg);
+    padding: 16px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    transition: background .2s;
+  }
+  .model-item:hover { background: var(--surface); }
+  .model-item-name {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--fg);
+    letter-spacing: .02em;
+    line-height: 1.4;
+  }
+  .pill {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 20px;
+    flex-shrink: 0;
+  }
+  .pill-free { background: rgba(62,207,142,.1); color: #3ecf8e; border: 1px solid rgba(62,207,142,.2); }
+  .pill-paid { background: rgba(255,196,0,.08); color: #d4a800; border: 1px solid rgba(255,196,0,.2); }
+  .model-note {
+    font-size: 12px;
+    font-weight: 300;
+    color: var(--dim);
+    padding: 16px 18px;
+    border-top: 1px solid var(--border);
+    font-family: var(--mono);
+    letter-spacing: .04em;
+  }
+
+  /* ── FEATURES ── */
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+  }
+  .feature-card {
+    background: var(--bg);
+    padding: 28px 26px;
+    transition: background .2s;
+  }
+  .feature-card:hover { background: var(--surface); }
+  .feature-icon {
+    font-size: 20px;
+    margin-bottom: 16px;
+    display: block;
+  }
+  .feature-title {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--white);
+    margin-bottom: 10px;
+    letter-spacing: -.01em;
+  }
+  .feature-desc {
+    font-size: 13px;
+    font-weight: 300;
+    color: var(--dim);
+    line-height: 1.6;
+  }
+
+  /* ── TIERS ── */
   .tiers {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -277,12 +495,12 @@
     background: var(--border);
     border: 1px solid var(--border);
   }
-
   .tier-card {
     background: var(--bg);
     padding: 36px 32px;
+    transition: background .2s;
   }
-
+  .tier-card:hover { background: var(--surface); }
   .tier-label {
     font-family: var(--mono);
     font-size: 10px;
@@ -292,7 +510,6 @@
     color: var(--muted);
     margin-bottom: 20px;
   }
-
   .tier-title {
     font-size: 22px;
     font-weight: 500;
@@ -300,14 +517,12 @@
     margin-bottom: 24px;
     letter-spacing: -.01em;
   }
-
   .tier-list {
     list-style: none;
     display: flex;
     flex-direction: column;
     gap: 10px;
   }
-
   .tier-list li {
     font-size: 13px;
     font-weight: 300;
@@ -315,9 +530,8 @@
     display: flex;
     align-items: flex-start;
     gap: 10px;
-    line-height: 1.4;
+    line-height: 1.45;
   }
-
   .tier-list li::before {
     content: '—';
     color: var(--muted);
@@ -327,14 +541,75 @@
     margin-top: 1px;
   }
 
+  /* ── FAQ ── */
+  .faq-list { display: flex; flex-direction: column; }
+  .faq-item {
+    border: 1px solid var(--border);
+    border-bottom: none;
+    overflow: hidden;
+  }
+  .faq-item:last-child { border-bottom: 1px solid var(--border); }
+  .faq-q {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    cursor: pointer;
+    transition: background .2s;
+    user-select: none;
+    gap: 16px;
+  }
+  .faq-q:hover { background: var(--surface); }
+  .faq-q-text {
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--fg);
+    letter-spacing: -.005em;
+  }
+  .faq-arrow {
+    font-family: var(--mono);
+    font-size: 14px;
+    color: var(--muted);
+    transition: transform .25s;
+    flex-shrink: 0;
+  }
+  .faq-item.open .faq-arrow { transform: rotate(180deg); }
+  .faq-a {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height .3s ease, padding .3s ease;
+    padding: 0 24px;
+    font-size: 13px;
+    font-weight: 300;
+    color: var(--dim);
+    line-height: 1.7;
+    border-top: 0px solid var(--border);
+  }
+  .faq-item.open .faq-a {
+    max-height: 200px;
+    padding: 16px 24px 20px;
+    border-top: 1px solid var(--border);
+  }
+  .faq-a a { color: var(--fg); text-underline-offset: 3px; }
+  .faq-a code {
+    font-family: var(--mono);
+    font-size: 11px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 2px 6px;
+    border-radius: 2px;
+    color: var(--fg);
+  }
+
   /* ── STACK ── */
   .stack-row {
     display: flex;
     align-items: center;
     border: 1px solid var(--border);
+    transition: background .2s;
   }
+  .stack-row:hover { background: var(--surface); }
   .stack-row + .stack-row { border-top: none; }
-
   .stack-num {
     font-family: var(--mono);
     font-size: 10px;
@@ -344,72 +619,158 @@
     min-width: 60px;
     letter-spacing: .1em;
   }
-
   .stack-name {
     font-family: var(--mono);
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 500;
     color: var(--fg);
     padding: 20px 24px;
     border-right: 1px solid var(--border);
-    min-width: 200px;
+    min-width: 180px;
   }
-
   .stack-desc {
     font-size: 13px;
     font-weight: 300;
     color: var(--dim);
     padding: 20px 24px;
+    flex: 1;
   }
 
   /* ── FOOTER ── */
   footer {
     border-top: 1px solid var(--border);
-    padding: 40px 48px;
+    padding: 36px 48px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 16px;
+    flex-wrap: wrap;
   }
-
   .footer-left {
     font-family: var(--mono);
     font-size: 11px;
     color: var(--muted);
     letter-spacing: .06em;
   }
-
-  .footer-right {
-    font-size: 11px;
-    color: var(--muted);
+  .footer-links {
+    display: flex;
+    gap: 24px;
     font-family: var(--mono);
+    font-size: 11px;
     letter-spacing: .06em;
   }
-
-  .footer-right a {
+  .footer-links a {
     color: var(--dim);
     text-decoration: none;
     transition: color .2s;
   }
-  .footer-right a:hover { color: var(--fg); }
+  .footer-links a:hover { color: var(--fg); }
 
-  /* ── SCROLL FADE ── */
+  /* ── FADE IN ── */
   .fade-in {
     opacity: 0;
-    transform: translateY(20px);
-    transition: opacity .6s ease, transform .6s ease;
+    transform: translateY(18px);
+    transition: opacity .55s ease, transform .55s ease;
   }
-  .fade-in.visible {
-    opacity: 1;
-    transform: none;
+  .fade-in.visible { opacity: 1; transform: none; }
+
+  /* ── SNAKE MODAL ── */
+  #snake-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.85);
+    backdrop-filter: blur(12px);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+  }
+  #snake-overlay.show { display: flex; }
+  #snake-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 0;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  #snake-header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    gap: 16px;
+  }
+  #snake-title {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  #snake-score-display {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--green);
+    letter-spacing: .1em;
+  }
+  #snake-close {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--dim);
+    cursor: pointer;
+    padding: 4px 8px;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    background: none;
+    transition: color .2s, border-color .2s;
+    letter-spacing: .08em;
+  }
+  #snake-close:hover { color: var(--fg); border-color: var(--muted); }
+  #snake-canvas {
+    display: block;
+    image-rendering: crisp-edges;
+  }
+  #snake-overlay-msg {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    top: 46px;
+  }
+  #snake-msg-text {
+    font-family: var(--mono);
+    font-size: 14px;
+    color: var(--white);
+    letter-spacing: .1em;
+    text-align: center;
+    line-height: 2;
+    background: rgba(8,8,8,.85);
+    padding: 16px 28px;
+    border: 1px solid var(--border);
+  }
+  #snake-msg-text span {
+    display: block;
+    font-size: 10px;
+    color: var(--dim);
+    letter-spacing: .18em;
+    margin-top: 6px;
   }
 
-  @media (max-width: 640px) {
-    nav { padding: 18px 20px; }
+  @media (max-width: 720px) {
+    nav { padding: 16px 20px; }
     .nav-links { display: none; }
+    .steps { grid-template-columns: 1fr; }
     .tiers { grid-template-columns: 1fr; }
-    footer { flex-direction: column; align-items: flex-start; }
-    section { padding: 64px 16px; }
+    footer { flex-direction: column; align-items: flex-start; padding: 28px 20px; }
+    section { padding: 60px 16px; }
   }
 </style>
 </head>
@@ -418,15 +779,17 @@
 <!-- NAV -->
 <nav id="nav">
   <a class="nav-logo" href="#">
-    <!-- Inline N logo -->
-    <img src="logo.png" alt="NovAI" style="width:28px;height:28px;object-fit:contain;"/>
+    <img src="logo.png" alt="NovAI" style="width:26px;height:26px;object-fit:contain;"/>
     <span class="nav-wordmark">NovAI</span>
   </a>
   <ul class="nav-links">
+    <li><a href="#start">Start</a></li>
     <li><a href="#commands">Commands</a></li>
-    <li><a href="#access">Access</a></li>
-    <li><a href="#stack">Stack</a></li>
-    <li><a href="https://github.com/Nov-AI/NovAI" target="_blank" class="btn-nav">GitHub ↗</a></li>
+    <li><a href="#models">Models</a></li>
+    <li><a href="#features">Features</a></li>
+    <li><a href="#faq">FAQ</a></li>
+    <li><a href="https://github.com/Nov-AI/nov-ai.github.io" target="_blank" class="btn-nav">GitHub ↗</a></li>
+    <li><a href="https://discord.com/oauth2/authorize?client_id=1520183989200093205&permissions=8&integration_type=0&scope=bot+applications.commands" target="_blank" class="btn-add-nav">Add to Discord</a></li>
   </ul>
 </nav>
 
@@ -436,13 +799,19 @@
     <img src="logo.png" alt="NovAI logo" style="width:100%;height:100%;object-fit:contain;"/>
   </div>
 
-  <!-- ASCII art rendered on canvas for pixel-perfect alignment -->
   <div class="hero-ascii-wrap">
-    <canvas id="ascii-canvas" style="max-width:100%;height:auto;image-rendering:crisp-edges;opacity:.95;filter:drop-shadow(0 0 24px rgba(255,255,255,.1));"></canvas>
+    <canvas id="ascii-canvas" style="max-width:100%;height:auto;image-rendering:crisp-edges;opacity:.95;filter:drop-shadow(0 0 24px rgba(255,255,255,.08));"></canvas>
   </div>
 
-  <p class="hero-tag">Discord · Pollinations AI · v1.2.0</p>
-  <p class="hero-sub">Generate <span>text</span>, <span>images</span>, <span>audio</span>, and <span>video</span> — directly inside your Discord server.</p>
+  <p class="hero-tag">Discord Bot · v3.0.0 · <span class="v">Powered by Pollinations AI</span></p>
+  <p class="hero-sub">Generate <span>text</span>, <span>images</span>, <span>audio</span>, and <span>video</span> — directly inside your Discord server. No API key required to get started.</p>
+
+  <div class="hero-stats">
+    <span class="hero-stat">50+ models</span>
+    <span class="hero-stat">18 commands</span>
+    <span class="hero-stat">Works in DMs</span>
+    <span class="hero-stat">Free to use</span>
+  </div>
 
   <div class="hero-cta">
     <a href="https://discord.com/oauth2/authorize?client_id=1520183989200093205&permissions=8&integration_type=0&scope=bot+applications.commands" target="_blank" class="btn-discord">
@@ -451,77 +820,411 @@
     </a>
     <a href="https://github.com/Nov-AI/nov-ai.github.io" target="_blank" class="btn-ghost">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
-      View on GitHub
+      View Source
     </a>
   </div>
 </div>
 
 <div class="divider"></div>
 
-<!-- COMMANDS -->
-<section id="commands">
-  <p class="section-label fade-in">Commands</p>
-  <div class="commands-grid fade-in">
-    <div class="cmd-card">
-      <div class="cmd-name">/text [prompt]</div>
-      <div class="cmd-desc">Open a persistent AI chat thread — keep typing to continue the conversation.</div>
+<!-- QUICK START -->
+<section id="start">
+  <div class="section-header fade-in">
+    <p class="section-label">Quick Start</p>
+    <p class="section-note">3 steps to your first generation</p>
+  </div>
+  <div class="steps fade-in">
+    <div class="step">
+      <span class="step-num">01 — INSTALL</span>
+      <div class="step-title">Add Nov to your server</div>
+      <div class="step-desc">
+        Click the invite link and authorize Nov with the required permissions. Works in servers and DMs.
+        <br>
+        <a href="https://discord.com/oauth2/authorize?client_id=1520183989200093205&permissions=8&integration_type=0&scope=bot+applications.commands" target="_blank" class="step-code">→ Add to Discord</a>
+      </div>
     </div>
-    <div class="cmd-card">
-      <div class="cmd-name">/image [prompt]</div>
-      <div class="cmd-desc">Generate an image from a text prompt using Flux or any connected image model.</div>
+    <div class="step">
+      <span class="step-num">02 — GENERATE</span>
+      <div class="step-title">Try your first command</div>
+      <div class="step-desc">
+        No sign-up needed. Type any of these right away.
+        <code class="step-code">/ask what is the speed of light</code>
+        <code class="step-code" style="margin-top:6px;">/image a fox in a forest</code>
+      </div>
     </div>
-    <div class="cmd-card">
-      <div class="cmd-name">/audio [text]</div>
-      <div class="cmd-desc">Convert text to speech using 11 OpenAI TTS voices including Nova, Echo, and Onyx.</div>
-    </div>
-    <div class="cmd-card">
-      <div class="cmd-name">/video [prompt]</div>
-      <div class="cmd-desc">Generate a video clip. Requires Pollen credits via your connected account.</div>
-    </div>
-    <div class="cmd-card">
-      <div class="cmd-name">/model [type] [name]</div>
-      <div class="cmd-desc">Switch the AI model with autocomplete — text, image, audio, or video.</div>
-    </div>
-    <div class="cmd-card">
-      <div class="cmd-name">/connect</div>
-      <div class="cmd-desc">Link your Pollinations account via device flow to unlock paid models and credits.</div>
-    </div>
-    <div class="cmd-card">
-      <div class="cmd-name">/remember [key] [value]</div>
-      <div class="cmd-desc">Save info NovAI will remember about you across sessions.</div>
-    </div>
-    <div class="cmd-card">
-      <div class="cmd-name">/models · /info · /help</div>
-      <div class="cmd-desc">List available models, view your current settings, or see all commands.</div>
+    <div class="step">
+      <span class="step-num">03 — UNLOCK (OPTIONAL)</span>
+      <div class="step-title">Connect your account</div>
+      <div class="step-desc">
+        To access paid models (Claude, Gemini, Veo…) link your <a href="https://enter.pollinations.ai" target="_blank">Pollinations account</a> for free.
+        <code class="step-code">/connect</code>
+      </div>
     </div>
   </div>
 </section>
 
 <div class="divider"></div>
 
-<!-- ACCESS TIERS -->
+<!-- COMMANDS -->
+<section id="commands">
+  <div class="section-header fade-in">
+    <p class="section-label">Commands</p>
+    <p class="section-note"><span style="color:var(--green)">●</span> free &nbsp;|&nbsp; <span style="color:#d4a800">●</span> account required</p>
+  </div>
+
+  <div class="cmd-categories fade-in">
+
+    <div class="cmd-group">
+      <div class="cmd-group-label">💬 Chat & Text</div>
+      <div class="cmd-rows">
+        <div class="cmd-card">
+          <div class="cmd-name">/text [prompt] <span class="cmd-badge badge-free">free</span></div>
+          <div class="cmd-desc">Opens a persistent AI chat thread. Keep typing in the thread to continue — no re-typing the command.</div>
+        </div>
+        <div class="cmd-card">
+          <div class="cmd-name">/ask [prompt] <span class="cmd-badge badge-free">free</span></div>
+          <div class="cmd-desc">Get a quick reply inline, no thread. Best for one-off questions.</div>
+        </div>
+        <div class="cmd-card">
+          <div class="cmd-name">/privtext [prompt] <span class="cmd-badge badge-free">free</span></div>
+          <div class="cmd-desc">Opens a private thread — only you and Nov can see it. Great for sensitive topics.</div>
+        </div>
+        <div class="cmd-card">
+          <div class="cmd-name">/privchat <span class="cmd-badge badge-free">free</span></div>
+          <div class="cmd-desc">Same as privtext, but no opening message needed. Just start chatting.</div>
+        </div>
+        <div class="cmd-card">
+          <div class="cmd-name">/translate [text] [lang] <span class="cmd-badge badge-free">free</span></div>
+          <div class="cmd-desc">Translate to any language. Supports 100+ languages including Japanese, Arabic, Swahili.</div>
+        </div>
+        <div class="cmd-card">
+          <div class="cmd-name">/summarize [text] [style] <span class="cmd-badge badge-free">free</span></div>
+          <div class="cmd-desc">Summarize in 4 styles: bullet points, paragraph, one sentence, or TL;DR.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cmd-group">
+      <div class="cmd-group-label">🖼️ Image</div>
+      <div class="cmd-rows">
+        <div class="cmd-card">
+          <div class="cmd-name">/image [prompt] <span class="cmd-badge badge-free">free</span></div>
+          <div class="cmd-desc">Generate an image. Supports 3 sizes: square, landscape, portrait. Includes a copy-URL button.</div>
+        </div>
+        <div class="cmd-card">
+          <div class="cmd-name">/batch [prompt] [2-4] <span class="cmd-badge badge-free">free</span></div>
+          <div class="cmd-desc">Generate 2–4 image variations in parallel. All generated with different seeds.</div>
+        </div>
+        <div class="cmd-card">
+          <div class="cmd-name">/edit [image_url] [prompt] <span class="cmd-badge badge-account">account</span></div>
+          <div class="cmd-desc">Edit an existing image using FLUX.1 Kontext. Paste any image URL and describe the change.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cmd-group">
+      <div class="cmd-group-label">🔊 Audio & 🎬 Video</div>
+      <div class="cmd-rows">
+        <div class="cmd-card">
+          <div class="cmd-name">/audio [text] <span class="cmd-badge badge-free">free</span></div>
+          <div class="cmd-desc">Convert text to speech. 11 OpenAI TTS voices available for free (Nova, Alloy, Echo…).</div>
+        </div>
+        <div class="cmd-card">
+          <div class="cmd-name">/video [prompt] <span class="cmd-badge badge-account">account</span></div>
+          <div class="cmd-desc">Generate a short video clip using Veo 3.1 or Seedance. Requires Pollen credits.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cmd-group">
+      <div class="cmd-group-label">⚙️ Settings & Models</div>
+      <div class="cmd-rows">
+        <div class="cmd-card">
+          <div class="cmd-name">/model [type] [name] <span class="cmd-badge badge-account">account</span></div>
+          <div class="cmd-desc">Switch the AI model for text, image, audio, or video. Full autocomplete in Discord.</div>
+        </div>
+        <div class="cmd-card">
+          <div class="cmd-name">/models <span class="cmd-badge badge-free">free</span></div>
+          <div class="cmd-desc">List all available models. Shows free models without an account, all models with one.</div>
+        </div>
+        <div class="cmd-card">
+          <div class="cmd-name">/info <span class="cmd-badge badge-free">free</span></div>
+          <div class="cmd-desc">View your current settings: active models, connected key, and saved memory.</div>
+        </div>
+        <div class="cmd-card">
+          <div class="cmd-name">/connect / /disconnect <span class="cmd-badge badge-free">free</span></div>
+          <div class="cmd-desc">Link or unlink your Pollinations account to unlock all models and your Pollen balance.</div>
+        </div>
+        <div class="cmd-card">
+          <div class="cmd-name">/profile <span class="cmd-badge badge-account">account</span></div>
+          <div class="cmd-desc">See your Pollinations tier, GitHub username, and Pollen credit balance.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cmd-group">
+      <div class="cmd-group-label">🧠 Memory & 🛠️ Utilities</div>
+      <div class="cmd-rows">
+        <div class="cmd-card">
+          <div class="cmd-name">/remember [key] [value] <span class="cmd-badge badge-free">free</span></div>
+          <div class="cmd-desc">Tell Nov something to remember — your name, language, preferred tone. Persists across threads.</div>
+        </div>
+        <div class="cmd-card">
+          <div class="cmd-name">/forget <span class="cmd-badge badge-free">free</span></div>
+          <div class="cmd-desc">Clear everything Nov has stored about you.</div>
+        </div>
+        <div class="cmd-card">
+          <div class="cmd-name">/poll [topic] <span class="cmd-badge badge-free">free</span></div>
+          <div class="cmd-desc">AI generates a poll question with 4 choices and auto-adds 🇦🇧🇨🇩 reactions.</div>
+        </div>
+        <div class="cmd-card">
+          <div class="cmd-name">/roast [target] <span class="cmd-badge badge-free">free</span></div>
+          <div class="cmd-desc">Get a spicy but harmless comedy roast. Pure wit, no slurs. Good for server banter.</div>
+        </div>
+        <div class="cmd-card">
+          <div class="cmd-name">/export <span class="cmd-badge badge-free">free</span></div>
+          <div class="cmd-desc">Download your current thread's chat history as a .txt file.</div>
+        </div>
+        <div class="cmd-card">
+          <div class="cmd-name">/reset · /ping · /help <span class="cmd-badge badge-free">free</span></div>
+          <div class="cmd-desc">Close the current thread, check latency with a color bar, or see the full command reference.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- MODELS -->
+<section id="models">
+  <div class="section-header fade-in">
+    <p class="section-label">Models</p>
+    <p class="section-note">All via Pollinations AI · <span style="color:#d4a800">Yellow</span> = Pollen credits</p>
+  </div>
+  <div class="fade-in">
+    <div class="model-tabs">
+      <div class="model-tab active" data-tab="text">💬 Text</div>
+      <div class="model-tab" data-tab="image">🖼️ Image</div>
+      <div class="model-tab" data-tab="audio">🔊 Audio</div>
+      <div class="model-tab" data-tab="video">🎬 Video</div>
+    </div>
+    <div class="model-panels">
+
+      <div class="model-panel active" id="panel-text">
+        <div class="model-list">
+          <div class="model-item"><span class="model-item-name">GPT-5.4 Nano</span><span class="pill pill-free">free</span></div>
+          <div class="model-item"><span class="model-item-name">GPT-5.4 Mini</span><span class="pill pill-free">free</span></div>
+          <div class="model-item"><span class="model-item-name">GPT-5.5</span><span class="pill pill-free">free</span></div>
+          <div class="model-item"><span class="model-item-name">DeepSeek V4 Flash</span><span class="pill pill-free">free</span></div>
+          <div class="model-item"><span class="model-item-name">DeepSeek V4 Pro</span><span class="pill pill-free">free</span></div>
+          <div class="model-item"><span class="model-item-name">Mistral Small 4</span><span class="pill pill-free">free</span></div>
+          <div class="model-item"><span class="model-item-name">Mistral Large 3</span><span class="pill pill-free">free</span></div>
+          <div class="model-item"><span class="model-item-name">Meta Llama 4 Scout</span><span class="pill pill-free">free</span></div>
+          <div class="model-item"><span class="model-item-name">Qwen3 Coder 30B</span><span class="pill pill-free">free</span></div>
+          <div class="model-item"><span class="model-item-name">Grok 4.20</span><span class="pill pill-free">free</span></div>
+          <div class="model-item"><span class="model-item-name">Grok 4.3</span><span class="pill pill-free">free</span></div>
+          <div class="model-item"><span class="model-item-name">Perplexity Sonar</span><span class="pill pill-free">free</span></div>
+          <div class="model-item"><span class="model-item-name">Moonshot Kimi K2.6</span><span class="pill pill-free">free</span></div>
+          <div class="model-item"><span class="model-item-name">MiniMax M3</span><span class="pill pill-free">free</span></div>
+          <div class="model-item"><span class="model-item-name">Nova 2 Lite</span><span class="pill pill-free">free</span></div>
+          <div class="model-item"><span class="model-item-name">Z.ai GLM-5.2</span><span class="pill pill-free">free</span></div>
+          <div class="model-item"><span class="model-item-name">Gemini 3.5 Flash</span><span class="pill pill-paid">paid</span></div>
+          <div class="model-item"><span class="model-item-name">Gemini 3.1 Pro</span><span class="pill pill-paid">paid</span></div>
+          <div class="model-item"><span class="model-item-name">Gemini 2.5 Flash Search</span><span class="pill pill-paid">paid</span></div>
+          <div class="model-item"><span class="model-item-name">Claude Haiku 4.5</span><span class="pill pill-paid">paid</span></div>
+          <div class="model-item"><span class="model-item-name">Claude Sonnet 4.6</span><span class="pill pill-paid">paid</span></div>
+          <div class="model-item"><span class="model-item-name">Claude Opus 4.7</span><span class="pill pill-paid">paid</span></div>
+          <div class="model-item"><span class="model-item-name">Claude Opus 4.8</span><span class="pill pill-paid">paid</span></div>
+          <div class="model-item"><span class="model-item-name">Mercury 2</span><span class="pill pill-paid">paid</span></div>
+          <div class="model-item"><span class="model-item-name">Qwen3 Coder Next</span><span class="pill pill-paid">paid</span></div>
+          <div class="model-item"><span class="model-item-name">Meta Llama 4 Maverick</span><span class="pill pill-paid">paid</span></div>
+        </div>
+        <div class="model-note">Default: GPT-5.4 Nano · Use /model to switch · /models for full list</div>
+      </div>
+
+      <div class="model-panel" id="panel-image">
+        <div class="model-list">
+          <div class="model-item"><span class="model-item-name">Flux Schnell</span><span class="pill pill-free">free</span></div>
+          <div class="model-item"><span class="model-item-name">FLUX.2 Klein 4B</span><span class="pill pill-free">free</span></div>
+          <div class="model-item"><span class="model-item-name">FLUX.1 Kontext</span><span class="pill pill-free">free</span></div>
+          <div class="model-item"><span class="model-item-name">GPT Image 1 Mini</span><span class="pill pill-free">free</span></div>
+          <div class="model-item"><span class="model-item-name">GPT Image 1.5</span><span class="pill pill-free">free</span></div>
+          <div class="model-item"><span class="model-item-name">Z-Image Turbo</span><span class="pill pill-free">free</span></div>
+          <div class="model-item"><span class="model-item-name">Nova Canvas</span><span class="pill pill-free">free</span></div>
+          <div class="model-item"><span class="model-item-name">Seedream 4.0</span><span class="pill pill-paid">paid</span></div>
+          <div class="model-item"><span class="model-item-name">Seedream 4.5 Pro</span><span class="pill pill-paid">paid</span></div>
+          <div class="model-item"><span class="model-item-name">Seedream 5.0 Lite</span><span class="pill pill-paid">paid</span></div>
+          <div class="model-item"><span class="model-item-name">Ideogram 4.0 Turbo</span><span class="pill pill-paid">paid</span></div>
+          <div class="model-item"><span class="model-item-name">Ideogram 4.0 Quality</span><span class="pill pill-paid">paid</span></div>
+          <div class="model-item"><span class="model-item-name">Grok Imagine</span><span class="pill pill-paid">paid</span></div>
+          <div class="model-item"><span class="model-item-name">Grok Imagine Pro</span><span class="pill pill-paid">paid</span></div>
+          <div class="model-item"><span class="model-item-name">GPT Image 2</span><span class="pill pill-paid">paid</span></div>
+          <div class="model-item"><span class="model-item-name">Wan 2.7 Image</span><span class="pill pill-paid">paid</span></div>
+        </div>
+        <div class="model-note">Default: Flux Schnell · /edit uses FLUX.1 Kontext</div>
+      </div>
+
+      <div class="model-panel" id="panel-audio">
+        <div class="model-list">
+          <div class="model-item"><span class="model-item-name">Nova / Alloy / Echo</span><span class="pill pill-free">free</span></div>
+          <div class="model-item"><span class="model-item-name">Fable / Onyx / Shimmer</span><span class="pill pill-free">free</span></div>
+          <div class="model-item"><span class="model-item-name">Ash / Ballad / Coral</span><span class="pill pill-free">free</span></div>
+          <div class="model-item"><span class="model-item-name">Sage / Verse</span><span class="pill pill-free">free</span></div>
+          <div class="model-item"><span class="model-item-name">Whisper Large V3</span><span class="pill pill-free">free</span></div>
+          <div class="model-item"><span class="model-item-name">AssemblyAI Universal-2</span><span class="pill pill-free">free</span></div>
+          <div class="model-item"><span class="model-item-name">ACE-Step 1.5 Turbo</span><span class="pill pill-free">free</span></div>
+          <div class="model-item"><span class="model-item-name">ElevenLabs v3 TTS</span><span class="pill pill-paid">paid</span></div>
+          <div class="model-item"><span class="model-item-name">ElevenLabs Flash v2.5</span><span class="pill pill-paid">paid</span></div>
+          <div class="model-item"><span class="model-item-name">ElevenLabs Multilingual v2</span><span class="pill pill-paid">paid</span></div>
+          <div class="model-item"><span class="model-item-name">ElevenLabs Music</span><span class="pill pill-paid">paid</span></div>
+          <div class="model-item"><span class="model-item-name">ElevenLabs Sound Effects</span><span class="pill pill-paid">paid</span></div>
+          <div class="model-item"><span class="model-item-name">Qwen3-TTS Flash</span><span class="pill pill-paid">paid</span></div>
+          <div class="model-item"><span class="model-item-name">Stable Audio 2.5</span><span class="pill pill-paid">paid</span></div>
+          <div class="model-item"><span class="model-item-name">Stable Audio 3</span><span class="pill pill-paid">paid</span></div>
+          <div class="model-item"><span class="model-item-name">Scribe v2</span><span class="pill pill-paid">paid</span></div>
+        </div>
+        <div class="model-note">Default: Nova · 11 free OpenAI TTS voices · Paid models require /connect</div>
+      </div>
+
+      <div class="model-panel" id="panel-video">
+        <div class="model-list">
+          <div class="model-item"><span class="model-item-name">LTX-2.3</span><span class="pill pill-free">free</span></div>
+          <div class="model-item"><span class="model-item-name">Nova Reel</span><span class="pill pill-free">free</span></div>
+          <div class="model-item"><span class="model-item-name">Veo 3.1 Fast</span><span class="pill pill-paid">paid</span></div>
+          <div class="model-item"><span class="model-item-name">Seedance Pro-Fast</span><span class="pill pill-paid">paid</span></div>
+          <div class="model-item"><span class="model-item-name">Seedance 2.0</span><span class="pill pill-paid">paid</span></div>
+          <div class="model-item"><span class="model-item-name">Wan 2.7</span><span class="pill pill-paid">paid</span></div>
+          <div class="model-item"><span class="model-item-name">Wan 2.7 1080p</span><span class="pill pill-paid">paid</span></div>
+          <div class="model-item"><span class="model-item-name">Grok Video Pro</span><span class="pill pill-paid">paid</span></div>
+        </div>
+        <div class="model-note">Default: Veo 3.1 Fast · All video requires /connect and Pollen credits</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="section-header fade-in">
+    <p class="section-label">Features</p>
+  </div>
+  <div class="features-grid fade-in">
+    <div class="feature-card">
+      <span class="feature-icon">🧠</span>
+      <div class="feature-title">Persistent Memory</div>
+      <div class="feature-desc">Tell Nov your name, preferred language, or writing style with <code style="font-family:var(--mono);font-size:11px;background:var(--surface);border:1px solid var(--border);padding:2px 6px;border-radius:2px;">/remember</code> and it'll apply across every conversation.</div>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">🔒</span>
+      <div class="feature-title">Private Threads</div>
+      <div class="feature-desc">Use <code style="font-family:var(--mono);font-size:11px;background:var(--surface);border:1px solid var(--border);padding:2px 6px;border-radius:2px;">/privtext</code> to spin up a Discord private thread — only you and Nov can see it. Moderators are excluded by default.</div>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">💬</span>
+      <div class="feature-title">DM Support</div>
+      <div class="feature-desc">Add Nov to your user account and chat in DMs — no server required. The conversation continues as you keep typing, no slash commands needed.</div>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">🎭</span>
+      <div class="feature-title">8 Built-in Personas</div>
+      <div class="feature-desc">Switch Nov's personality mid-conversation: default, sarcastic, formal, pirate, anime, hacker, Shakespeare, or chef. Use <code style="font-family:var(--mono);font-size:11px;background:var(--surface);border:1px solid var(--border);padding:2px 6px;border-radius:2px;">/text system:</code> to set any custom persona too.</div>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">🖼️</span>
+      <div class="feature-title">Batch Image Generation</div>
+      <div class="feature-desc">Generate up to 4 image variations in parallel from a single prompt — all with different seeds. Each gets its own URL copy button.</div>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">🌐</span>
+      <div class="feature-title">BYOP — Bring Your Own Pollen</div>
+      <div class="feature-desc">Your Pollen credits pay for your own usage — Nov never touches your money. Link via <code style="font-family:var(--mono);font-size:11px;background:var(--surface);border:1px solid var(--border);padding:2px 6px;border-radius:2px;">/connect</code> using secure device flow.</div>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">📋</span>
+      <div class="feature-title">Chat Export</div>
+      <div class="feature-desc">Download any thread's full conversation history as a clean .txt file with <code style="font-family:var(--mono);font-size:11px;background:var(--surface);border:1px solid var(--border);padding:2px 6px;border-radius:2px;">/export</code>.</div>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">⚡</span>
+      <div class="feature-title">Autocomplete Everywhere</div>
+      <div class="feature-desc">Model names, types, and options all autocomplete as you type in Discord. No need to remember exact model strings.</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- TIERS -->
 <section id="access">
-  <p class="section-label fade-in">Access</p>
+  <div class="section-header fade-in">
+    <p class="section-label">Access</p>
+  </div>
   <div class="tiers fade-in">
     <div class="tier-card">
-      <div class="tier-label">Without account</div>
+      <div class="tier-label">No account needed</div>
       <div class="tier-title">Free tier</div>
       <ul class="tier-list">
-        <li>12 free text models — GPT‑5.4 Nano default</li>
+        <li>16+ free text models (GPT-5.4 Nano default)</li>
         <li>Flux Schnell image generation</li>
-        <li>11 OpenAI TTS voices</li>
-        <li>No sign-up required</li>
+        <li>11 OpenAI TTS voices (Nova, Alloy, Echo…)</li>
+        <li>Batch generation up to 4 images</li>
+        <li>DM conversations, private threads</li>
+        <li>Memory, personas, translate, summarize</li>
+        <li>No sign-up, no API key</li>
       </ul>
     </div>
-    <div class="tier-card" style="border-left: 1px solid var(--border);">
-      <div class="tier-label">With Pollinations account</div>
+    <div class="tier-card" style="border-left:1px solid var(--border);">
+      <div class="tier-label">With Pollinations account · free to create</div>
       <div class="tier-title">Full access</div>
       <ul class="tier-list">
-        <li>All text models — GPT‑5.5, Gemini, Claude, Grok, and more</li>
-        <li>All image models — Ideogram, Seedream, Grok Imagine</li>
-        <li>Video generation via Veo 3.1</li>
-        <li>BYOP — your own Pollen credits, your usage</li>
+        <li>All 50+ models across text, image, audio, video</li>
+        <li>Claude Opus, Gemini Pro, Grok, and all paid models</li>
+        <li>Video generation (Veo 3.1, Seedance, Wan)</li>
+        <li>ElevenLabs TTS, Stable Audio, music generation</li>
+        <li>Image editing via FLUX.1 Kontext</li>
+        <li>Pollen credits: $1 ≈ 1 Pollen, credits never expire</li>
+        <li>Your usage, your Pollen — Nov earns a small referral fee</li>
       </ul>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- FAQ -->
+<section id="faq">
+  <div class="section-header fade-in">
+    <p class="section-label">FAQ</p>
+  </div>
+  <div class="faq-list fade-in">
+    <div class="faq-item">
+      <div class="faq-q"><span class="faq-q-text">Is Nov free to use?</span><span class="faq-arrow">↓</span></div>
+      <div class="faq-a">Yes — 16+ text models, image generation, and 11 TTS voices are completely free with no sign-up. Paid models (Claude, Gemini, Veo…) require a free <a href="https://enter.pollinations.ai" target="_blank">Pollinations account</a> and Pollen credits ($1 ≈ 1 Pollen, never expire).</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q"><span class="faq-q-text">Is my data stored anywhere?</span><span class="faq-arrow">↓</span></div>
+      <div class="faq-a">Nov stores conversation history and memory only in-memory while the bot is running — nothing is persisted to a database. Your Pollinations API key is also only stored in memory and is never logged. Restart the bot and everything resets.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q"><span class="faq-q-text">How does /connect work? Is it safe?</span><span class="faq-arrow">↓</span></div>
+      <div class="faq-a">Nov uses Pollinations' secure OAuth device flow — you get a one-time code, enter it at <a href="https://enter.pollinations.ai/device" target="_blank">enter.pollinations.ai/device</a>, and authorize Nov. Your <code>sk_</code> key is stored in memory only and masked in all logs. Nov never sees your password.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q"><span class="faq-q-text">Can I use Nov without a server?</span><span class="faq-arrow">↓</span></div>
+      <div class="faq-a">Yes. Nov supports User Install — add it to your Discord account and use it in any DM or group DM. Just type a message after using <code>/text</code> or <code>/privchat</code> and the conversation continues automatically without re-invoking any commands.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q"><span class="faq-q-text">How do I self-host Nov?</span><span class="faq-arrow">↓</span></div>
+      <div class="faq-a">Clone the <a href="https://github.com/Nov-AI/nov-ai.github.io" target="_blank">GitHub repo</a>, create a <code>.env</code> with your <code>DISCORD_TOKEN</code>, install dependencies with <code>pip install discord.py aiohttp python-dotenv</code>, and run <code>python Bot.py</code>. Deploy on Railway, Fly.io, or any VPS for 24/7 uptime.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q"><span class="faq-q-text">What's the difference between /text and /ask?</span><span class="faq-arrow">↓</span></div>
+      <div class="faq-a"><code>/ask</code> sends a single question and gets a single reply inline — no thread. <code>/text</code> opens a dedicated thread where you keep chatting by just typing, with full conversation history maintained. Use /ask for quick lookups, /text for actual back-and-forth.</div>
     </div>
   </div>
 </section>
@@ -530,27 +1233,34 @@
 
 <!-- STACK -->
 <section id="stack">
-  <p class="section-label fade-in">Stack</p>
+  <div class="section-header fade-in">
+    <p class="section-label">Stack</p>
+  </div>
   <div class="fade-in">
     <div class="stack-row">
       <span class="stack-num">01</span>
-      <span class="stack-name">discord.py</span>
-      <span class="stack-desc">Bot framework — slash commands, threads, interactions</span>
+      <span class="stack-name">discord.py ≥ 2.4</span>
+      <span class="stack-desc">Bot framework — slash commands, threads, User Install, app contexts</span>
     </div>
     <div class="stack-row">
       <span class="stack-num">02</span>
       <span class="stack-name">Pollinations AI</span>
-      <span class="stack-desc">Inference backend — text, image, audio, video models</span>
+      <span class="stack-desc">Inference backend — unified API for text, image, audio, and video</span>
     </div>
     <div class="stack-row">
       <span class="stack-num">03</span>
       <span class="stack-name">aiohttp</span>
-      <span class="stack-desc">Async HTTP client for API requests</span>
+      <span class="stack-desc">Async HTTP client — non-blocking API calls, keeps Discord responsive</span>
     </div>
     <div class="stack-row">
       <span class="stack-num">04</span>
-      <span class="stack-name">Railway</span>
-      <span class="stack-desc">Hosting — deploy via GitHub, zero config</span>
+      <span class="stack-name">python-dotenv</span>
+      <span class="stack-desc">Environment config — DISCORD_TOKEN and optional POLLINATIONS_KEY</span>
+    </div>
+    <div class="stack-row">
+      <span class="stack-num">05</span>
+      <span class="stack-name">Railway / GitHub Pages</span>
+      <span class="stack-desc">Bot on Railway, this site on GitHub Pages — both deploy on push</span>
     </div>
   </div>
 </section>
@@ -559,76 +1269,283 @@
 
 <!-- FOOTER -->
 <footer>
-  <span class="footer-left">NovAI v1.2.0 — not affiliated with Pollinations AI</span>
-  <span class="footer-right">
-    <a href="https://github.com/Nov-AI/NovAI" target="_blank">github.com/Nov-AI/NovAI</a>
-  </span>
+  <span class="footer-left">NovAI v3.0.0 — not affiliated with Pollinations AI or Discord</span>
+  <div class="footer-links">
+    <a href="https://discord.com/oauth2/authorize?client_id=1520183989200093205&permissions=8&integration_type=0&scope=bot+applications.commands" target="_blank">Add Bot</a>
+    <a href="https://github.com/Nov-AI/nov-ai.github.io" target="_blank">Source</a>
+    <a href="https://enter.pollinations.ai" target="_blank">Pollinations</a>
+  </div>
 </footer>
 
+<!-- ──────────────────────────────────────────────
+     SNAKE GAME MODAL — triggered by Konami code
+     ↑ ↑ ↓ ↓ ← → ← → B A
+────────────────────────────────────────────── -->
+<div id="snake-overlay">
+  <div id="snake-box">
+    <div id="snake-header">
+      <span id="snake-title">Secret · Snake</span>
+      <span id="snake-score-display">SCORE: 0</span>
+      <button id="snake-close">ESC</button>
+    </div>
+    <canvas id="snake-canvas"></canvas>
+    <div id="snake-overlay-msg">
+      <div id="snake-msg-text">
+        PRESS ENTER TO START
+        <span>ARROW KEYS OR WASD TO MOVE</span>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
-  // Nav scroll
-  const nav = document.getElementById('nav');
-  window.addEventListener('scroll', () => {
-    nav.classList.toggle('scrolled', window.scrollY > 40);
+/* ── NAV SCROLL ── */
+const nav = document.getElementById('nav');
+window.addEventListener('scroll', () => {
+  nav.classList.toggle('scrolled', window.scrollY > 40);
+});
+
+/* ── ASCII CANVAS ── */
+(function renderAscii() {
+  const lines = [
+    '███╗   ██╗ ██████╗ ██╗   ██╗',
+    '████╗  ██║██╔═══██╗██║   ██║',
+    '██╔██╗ ██║██║   ██║██║   ██║',
+    '██║╚██╗██║██║   ██║╚██╗ ██╔╝',
+    '██║ ╚████║╚██████╔╝ ╚████╔╝ ',
+    '╚═╝  ╚═══╝ ╚═════╝   ╚═══╝  '
+  ];
+  const DPR = window.devicePixelRatio || 1;
+  const FS  = 13;
+  const LH  = FS * 1.22;
+  const FONT = `${FS * DPR}px "Courier New", monospace`;
+  const PAD = 2 * DPR;
+  const probe = document.createElement('canvas');
+  const px = probe.getContext('2d');
+  px.font = FONT;
+  const CW = px.measureText('█').width;
+  const maxChars = Math.max(...lines.map(l => [...l].length));
+  const W = Math.ceil(maxChars * CW) + PAD * 2;
+  const H = Math.ceil(lines.length * LH * DPR) + PAD * 2;
+  const canvas = document.getElementById('ascii-canvas');
+  canvas.width = W; canvas.height = H;
+  canvas.style.width  = Math.round(W / DPR) + 'px';
+  canvas.style.height = Math.round(H / DPR) + 'px';
+  const ctx = canvas.getContext('2d');
+  ctx.font = FONT;
+  ctx.fillStyle = '#ffffff';
+  ctx.textBaseline = 'top';
+  lines.forEach((line, row) => {
+    [...line].forEach((char, col) => {
+      ctx.fillText(char, PAD + col * CW, PAD + row * LH * DPR);
+    });
+  });
+})();
+
+/* ── FADE IN ── */
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); }
+  });
+}, { threshold: 0.08 });
+document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+/* ── MODEL TABS ── */
+document.querySelectorAll('.model-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.model-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.model-panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+  });
+});
+
+/* ── FAQ ACCORDION ── */
+document.querySelectorAll('.faq-item').forEach(item => {
+  item.querySelector('.faq-q').addEventListener('click', () => {
+    const wasOpen = item.classList.contains('open');
+    document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+    if (!wasOpen) item.classList.add('open');
+  });
+});
+
+/* ══════════════════════════════════════════════
+   SNAKE GAME
+   Trigger: Konami code ↑↑↓↓←→←→BA
+══════════════════════════════════════════════ */
+(function snakeGame() {
+  const KONAMI = [38,38,40,40,37,39,37,39,66,65];
+  let kIdx = 0;
+
+  document.addEventListener('keydown', (e) => {
+    if (e.keyCode === KONAMI[kIdx]) {
+      kIdx++;
+      if (kIdx === KONAMI.length) { kIdx = 0; openSnake(); }
+    } else {
+      kIdx = (e.keyCode === KONAMI[0]) ? 1 : 0;
+    }
   });
 
-  // Render ASCII art on canvas — forces fixed character spacing so box-drawing chars align perfectly
-  (function renderAscii() {
-    const lines = [
-      '███╗   ██╗ ██████╗ ██╗   ██╗ █████╗ ██╗',
-      '████╗  ██║██╔═══██╗██║   ██║██╔══██╗██║',
-      '██╔██╗ ██║██║   ██║██║   ██║███████║██║',
-      '██║╚██╗██║██║   ██║╚██╗ ██╔╝██╔══██║██║',
-      '██║ ╚████║╚██████╔╝ ╚████╔╝ ██║  ██║██║',
-      '╚═╝  ╚═══╝ ╚═════╝   ╚═══╝  ╚═╝  ╚═╝╚═╝'
-    ];
+  const overlay = document.getElementById('snake-overlay');
+  const closeBtn = document.getElementById('snake-close');
+  const canvas = document.getElementById('snake-canvas');
+  const ctx = canvas.getContext('2d');
+  const scoreDisplay = document.getElementById('snake-score-display');
+  const msgEl = document.getElementById('snake-msg-text');
 
-    const DPR    = window.devicePixelRatio || 1;
-    const FS     = 13;           // font size px (logical)
-    const LH     = FS * 1.25;   // line height
-    const FONT   = `${FS * DPR}px "Courier New", monospace`;
-    const PAD    = 2 * DPR;
+  const CELL = 18;
+  const COLS = 26;
+  const ROWS = 20;
+  const W = COLS * CELL;
+  const H = ROWS * CELL;
+  canvas.width  = W;
+  canvas.height = H;
+  canvas.style.width  = W + 'px';
+  canvas.style.height = H + 'px';
 
-    // Probe character width with a temp canvas
-    const probe = document.createElement('canvas');
-    const px    = probe.getContext('2d');
-    px.font     = FONT;
-    const CW    = px.measureText('█').width;   // use the block char itself as the reference
+  const BG       = '#0d0d0d';
+  const GRID_C   = '#161616';
+  const SNAKE_H  = '#3ecf8e';
+  const SNAKE_B  = '#2a9962';
+  const FOOD_C   = '#ffffff';
+  const DEAD_C   = '#5865F2';
 
-    const maxChars = Math.max(...lines.map(l => [...l].length));
-    const W = Math.ceil(maxChars * CW) + PAD * 2;
-    const H = Math.ceil(lines.length * LH * DPR) + PAD * 2;
+  let snake, dir, nextDir, food, score, gameLoop, state;
+  // states: 'idle' | 'running' | 'dead'
 
-    const canvas = document.getElementById('ascii-canvas');
-    canvas.width  = W;
-    canvas.height = H;
-    // CSS display size
-    canvas.style.width  = Math.round(W / DPR) + 'px';
-    canvas.style.height = Math.round(H / DPR) + 'px';
+  function init() {
+    snake = [{ x: 13, y: 10 }, { x: 12, y: 10 }, { x: 11, y: 10 }];
+    dir = { x: 1, y: 0 };
+    nextDir = { x: 1, y: 0 };
+    score = 0;
+    state = 'idle';
+    spawnFood();
+    updateScore();
+    render();
+  }
 
-    const ctx = canvas.getContext('2d');
-    ctx.font      = FONT;
-    ctx.fillStyle = '#ffffff';
-    ctx.textBaseline = 'top';
+  function spawnFood() {
+    let pos;
+    do {
+      pos = { x: Math.floor(Math.random() * COLS), y: Math.floor(Math.random() * ROWS) };
+    } while (snake.some(s => s.x === pos.x && s.y === pos.y));
+    food = pos;
+  }
 
-    lines.forEach((line, row) => {
-      [...line].forEach((char, col) => {
-        ctx.fillText(char, PAD + col * CW, PAD + row * LH * DPR);
-      });
+  function updateScore() {
+    scoreDisplay.textContent = 'SCORE: ' + score;
+  }
+
+  function render() {
+    // grid background
+    ctx.fillStyle = BG;
+    ctx.fillRect(0, 0, W, H);
+    ctx.strokeStyle = GRID_C;
+    ctx.lineWidth = 0.5;
+    for (let x = 0; x <= W; x += CELL) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
+    for (let y = 0; y <= H; y += CELL) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+
+    // food — small white square
+    ctx.fillStyle = state === 'dead' ? DEAD_C : FOOD_C;
+    const fp = 4;
+    ctx.fillRect(food.x * CELL + fp, food.y * CELL + fp, CELL - fp * 2, CELL - fp * 2);
+
+    // snake
+    snake.forEach((seg, i) => {
+      ctx.fillStyle = state === 'dead'
+        ? `rgba(88,101,242,${0.4 + 0.6 * (i === 0 ? 1 : (snake.length - i) / snake.length)})`
+        : (i === 0 ? SNAKE_H : SNAKE_B);
+      const p = 1;
+      ctx.fillRect(seg.x * CELL + p, seg.y * CELL + p, CELL - p * 2, CELL - p * 2);
     });
-  })();
 
-  // Fade-in on scroll
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(e => {
-      if (e.isIntersecting) {
-        e.target.classList.add('visible');
-        observer.unobserve(e.target);
-      }
-    });
-  }, { threshold: 0.1 });
+    // head eye detail
+    if (state !== 'dead') {
+      ctx.fillStyle = BG;
+      const h = snake[0];
+      ctx.fillRect(h.x * CELL + 5, h.y * CELL + 5, 3, 3);
+    }
+  }
 
-  document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+  function tick() {
+    dir = nextDir;
+    const head = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
+
+    // wall collision
+    if (head.x < 0 || head.x >= COLS || head.y < 0 || head.y >= ROWS) { die(); return; }
+    // self collision
+    if (snake.some(s => s.x === head.x && s.y === head.y)) { die(); return; }
+
+    snake.unshift(head);
+
+    if (head.x === food.x && head.y === food.y) {
+      score++;
+      updateScore();
+      spawnFood();
+    } else {
+      snake.pop();
+    }
+    render();
+  }
+
+  function die() {
+    state = 'dead';
+    clearInterval(gameLoop);
+    render();
+    msgEl.innerHTML = 'GAME OVER &mdash; SCORE: ' + score + '<span>PRESS ENTER TO RESTART · ESC TO CLOSE</span>';
+    msgEl.style.display = '';
+    document.getElementById('snake-overlay-msg').style.display = '';
+  }
+
+  function startGame() {
+    clearInterval(gameLoop);
+    init();
+    state = 'running';
+    msgEl.style.display = 'none';
+    document.getElementById('snake-overlay-msg').style.display = 'none';
+    gameLoop = setInterval(tick, 110);
+  }
+
+  function openSnake() {
+    overlay.classList.add('show');
+    msgEl.innerHTML = 'PRESS ENTER TO START<span>ARROW KEYS OR WASD TO MOVE</span>';
+    msgEl.style.display = '';
+    document.getElementById('snake-overlay-msg').style.display = '';
+    init();
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeSnake() {
+    overlay.classList.remove('show');
+    clearInterval(gameLoop);
+    state = 'idle';
+    document.body.style.overflow = '';
+  }
+
+  closeBtn.addEventListener('click', closeSnake);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) closeSnake(); });
+
+  document.addEventListener('keydown', (e) => {
+    if (!overlay.classList.contains('show')) return;
+
+    if (e.key === 'Escape') { closeSnake(); return; }
+    if (e.key === 'Enter') { startGame(); return; }
+
+    const dirs = {
+      'ArrowUp':    { x: 0, y: -1 }, 'w': { x: 0, y: -1 }, 'W': { x: 0, y: -1 },
+      'ArrowDown':  { x: 0, y:  1 }, 's': { x: 0, y:  1 }, 'S': { x: 0, y:  1 },
+      'ArrowLeft':  { x: -1, y: 0 }, 'a': { x: -1, y: 0 }, 'A': { x: -1, y: 0 },
+      'ArrowRight': { x:  1, y: 0 }, 'd': { x:  1, y: 0 }, 'D': { x:  1, y: 0 },
+    };
+    const d = dirs[e.key];
+    if (d) {
+      e.preventDefault();
+      // prevent reversing
+      if (d.x !== -dir.x || d.y !== -dir.y) nextDir = d;
+    }
+  });
+
+})();
 </script>
 </body>
 </html>

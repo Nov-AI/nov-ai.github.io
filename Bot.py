@@ -937,20 +937,25 @@ async def cmd_image(interaction: discord.Interaction, prompt: str, size: str = "
 async def cmd_audio(interaction: discord.Interaction, text: str):
     uid = interaction.user.id
     voice_name = USER_MODELS.get(uid, {}).get("audio", DEFAULT_MODELS["audio"])
-    FREE_VOICES = ["Nova","Alloy","Echo","Fable","Onyx","Shimmer","Ash","Ballad","Coral","Sage","Verse",
-                   "AssemblyAI Universal-2","Whisper Large V3","ACE-Step 1.5 Turbo","AssemblyAI Universal-3 Pro"]
-    if voice_name not in FREE_VOICES and not has_personal_key(uid):
+    FREE_VOICES = [
+        "Nova","Alloy","Echo","Fable","Onyx","Shimmer","Ash","Ballad","Coral","Sage","Verse",
+        "AssemblyAI Universal-2","Whisper Large V3","ACE-Step 1.5 Turbo","AssemblyAI Universal-3 Pro",
+    ]
+    is_free = voice_name in FREE_VOICES
+    if not is_free and not has_personal_key(uid):
         await interaction.response.send_message(embed=not_logged_in_embed(), ephemeral=True)
         return
     await interaction.response.defer(thinking=True)
     voice = get_model(uid, "audio")
+    # only send auth if the user has a real personal key (APP_KEY is rejected by Pollinations audio)
+    key = get_key(uid) if has_personal_key(uid) else None
     try:
         async with aiohttp.ClientSession() as session:
             audio = await api_post_bytes(session, f"{BASE_URL}/audio/speech",
-                                         {"model": "tts-1", "input": text, "voice": voice}, get_key(uid))
+                                         {"model": "tts-1", "input": text, "voice": voice}, key)
         file = discord.File(fp=io.BytesIO(audio), filename="nov_audio.mp3")
         await interaction.followup.send(
-            content=f"🔊 **{voice}** — *{text[:80]}{'...' if len(text)>80 else ''}*", file=file)
+            content=f"🔊 **{voice_name}** — *{text[:80]}{'...' if len(text)>80 else ''}*", file=file)
     except Exception as e:
         await interaction.followup.send(embed=discord.Embed(title="❌ Error", description=f"`{e}`", color=0xED4245))
 

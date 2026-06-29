@@ -35,6 +35,50 @@ APP_KEY       = "pk_yQpEnADty90tWmr0"
 BOT_NAME      = "Nov"
 BOT_COLOR     = 0x5865F2
 BOT_VERSION   = "3.1.0"
+STATE_FILE    = "nov_state.json"
+
+# ──────────────────────────────────────────────
+#  PERSISTENCE
+# ──────────────────────────────────────────────
+def save_state():
+    data = {
+        "USER_KEYS":          {str(k): v for k,v in USER_KEYS.items()},
+        "USER_MODELS":        {str(k): v for k,v in USER_MODELS.items()},
+        "USER_MEMORY":        {str(k): v for k,v in USER_MEMORY.items()},
+        "USER_PERSONA":       {str(k): v for k,v in USER_PERSONA.items()},
+        "SERVER_IDENTITY":    {str(k): v for k,v in SERVER_IDENTITY.items()},
+        "USER_PROVIDER_KEYS": {str(k): v for k,v in USER_PROVIDER_KEYS.items()},
+        "USER_TEXT_PROVIDER": {str(k): v for k,v in USER_TEXT_PROVIDER.items()},
+        "USER_PROVIDER_MODELS":{str(k): v for k,v in USER_PROVIDER_MODELS.items()},
+    }
+    with open(STATE_FILE, "w") as f:
+        json.dump(data, f)
+
+def load_state():
+    if not os.path.exists(STATE_FILE):
+        return
+    try:
+        with open(STATE_FILE) as f:
+            data = json.load(f)
+        for k, v in data.get("USER_KEYS", {}).items():
+            USER_KEYS[int(k)] = v
+        for k, v in data.get("USER_MODELS", {}).items():
+            USER_MODELS[int(k)] = v
+        for k, v in data.get("USER_MEMORY", {}).items():
+            USER_MEMORY[int(k)] = v
+        for k, v in data.get("USER_PERSONA", {}).items():
+            USER_PERSONA[int(k)] = v
+        for k, v in data.get("SERVER_IDENTITY", {}).items():
+            SERVER_IDENTITY[int(k)] = v
+        for k, v in data.get("USER_PROVIDER_KEYS", {}).items():
+            USER_PROVIDER_KEYS[int(k)] = v
+        for k, v in data.get("USER_TEXT_PROVIDER", {}).items():
+            USER_TEXT_PROVIDER[int(k)] = v
+        for k, v in data.get("USER_PROVIDER_MODELS", {}).items():
+            USER_PROVIDER_MODELS[int(k)] = v
+        print(f"✅  State loaded from {STATE_FILE}")
+    except Exception as e:
+        print(f"⚠️  Could not load state: {e}")
 
 # ──────────────────────────────────────────────
 #  STATE DICTS — Pollinations (legacy)
@@ -612,6 +656,7 @@ class APIKeyModal(discord.ui.Modal):
             USER_PROVIDER_KEYS[uid] = {}
         USER_PROVIDER_KEYS[uid][self.provider] = key
         USER_TEXT_PROVIDER[uid] = self.provider
+        save_state()
         p      = PROVIDERS[self.provider]
         masked = key[:6] + "•" * max(0, len(key) - 9) + key[-3:]
         await interaction.response.send_message(
@@ -643,6 +688,7 @@ bot = commands.Bot(
 
 @bot.event
 async def on_ready():
+    load_state()
     await bot.tree.sync()
     await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name="pollinations.ai ✨"))
     print(f"✅  {BOT_NAME} v{BOT_VERSION} online as {bot.user}")
@@ -718,6 +764,7 @@ async def cmd_connect(interaction: discord.Interaction, provider: str):
                                 set_memory(interaction.user.id, "pollinations_username", username)
                     except Exception:
                         pass
+                    save_state()
                     await interaction.followup.send(
                         embed=discord.Embed(
                             title="✅ Connected!",
@@ -755,6 +802,8 @@ async def cmd_disconnect(interaction: discord.Interaction, provider: str):
             del USER_PROVIDER_KEYS[uid][provider]
             if USER_TEXT_PROVIDER.get(uid) == provider:
                 USER_TEXT_PROVIDER.pop(uid, None)
+    if removed:
+        save_state()
     await interaction.response.send_message(
         embed=discord.Embed(
             title=f"✅ {p['emoji']} {p['name']} disconnected." if removed else f"ℹ️ {p['name']} wasn't connected.",
@@ -769,12 +818,14 @@ async def cmd_disconnect(interaction: discord.Interaction, provider: str):
 @app_commands.describe(key="What to remember", value="The value")
 async def cmd_remember(interaction: discord.Interaction, key: str, value: str):
     set_memory(interaction.user.id, key.lower(), value)
+    save_state()
     await interaction.response.send_message(
         embed=discord.Embed(title="🧠 Remembered!", description=f"**{key}** → `{value}`", color=0x57F287), ephemeral=True)
 
 @bot.tree.command(name="forget", description="Clear everything Nov remembers about you")
 async def cmd_forget(interaction: discord.Interaction):
     USER_MEMORY.pop(interaction.user.id, None)
+    save_state()
     await interaction.response.send_message(embed=discord.Embed(title="🧹 Memory cleared!", color=0x57F287), ephemeral=True)
 
 
@@ -1016,6 +1067,7 @@ async def cmd_model(interaction: discord.Interaction, provider: str, type: str, 
         USER_MODELS[uid][type] = model
         if type == "text":
             USER_TEXT_PROVIDER.pop(uid, None)
+        save_state()
         embed = discord.Embed(title="✅ Pollinations model updated", color=0x57F287)
         embed.add_field(name="Type",   value=f"{TYPE_EMOJI[type]} {type}", inline=True)
         embed.add_field(name="Before", value=f"`{prev}`",                  inline=True)
@@ -1041,6 +1093,7 @@ async def cmd_model(interaction: discord.Interaction, provider: str, type: str, 
     set_provider_model(uid, provider, type, model)
     if type == "text":
         USER_TEXT_PROVIDER[uid] = provider
+    save_state()
     embed = discord.Embed(title="✅ Model updated", color=0x57F287)
     embed.add_field(name="Provider", value=f"{p['emoji']} {p['name']}", inline=True)
     embed.add_field(name="Type",     value=f"{TYPE_EMOJI.get(type,type)} {type}", inline=True)

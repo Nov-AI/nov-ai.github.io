@@ -670,7 +670,7 @@ async def model_name_autocomplete(interaction: discord.Interaction, current: str
 @bot.tree.command(name="connect", description="Connect an AI provider account to Nov")
 @app_commands.describe(provider="Which provider to connect")
 @app_commands.choices(provider=PROVIDER_CHOICES)
-async def cmd_connect(interaction: discord.Interaction, provider: str = "pollinations"):
+async def cmd_connect(interaction: discord.Interaction, provider: str):
     if provider != "pollinations":
         await interaction.response.send_modal(APIKeyModal(provider))
         return
@@ -742,7 +742,7 @@ async def cmd_connect(interaction: discord.Interaction, provider: str = "pollina
 @bot.tree.command(name="disconnect", description="Remove a connected AI provider")
 @app_commands.describe(provider="Which provider to disconnect")
 @app_commands.choices(provider=PROVIDER_CHOICES)
-async def cmd_disconnect(interaction: discord.Interaction, provider: str = "pollinations"):
+async def cmd_disconnect(interaction: discord.Interaction, provider: str):
     uid = interaction.user.id
     p   = PROVIDERS[provider]
     if provider == "pollinations":
@@ -997,7 +997,7 @@ async def cmd_video(interaction: discord.Interaction, prompt: str):
     app_commands.Choice(name="🎬 Video", value="video"),
 ])
 @app_commands.autocomplete(model=provider_model_autocomplete)
-async def cmd_model(interaction: discord.Interaction, type: str, model: str, provider: str = "pollinations"):
+async def cmd_model(interaction: discord.Interaction, provider: str, type: str, model: str):
     uid = interaction.user.id
     p   = PROVIDERS[provider]
 
@@ -1055,7 +1055,7 @@ async def cmd_model(interaction: discord.Interaction, type: str, model: str, pro
 @bot.tree.command(name="models", description="List available models")
 @app_commands.describe(provider="Filter by provider")
 @app_commands.choices(provider=PROVIDER_CHOICES)
-async def cmd_models(interaction: discord.Interaction, provider: str = "pollinations"):
+async def cmd_models(interaction: discord.Interaction, provider: str):
     uid = interaction.user.id
     if provider == "pollinations":
         if not has_personal_key(uid):

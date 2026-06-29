@@ -68,21 +68,28 @@ PROVIDERS = {
 
 PROVIDER_MODELS = {
     "openai": {
-        "text": ["gpt-5.5","gpt-5.4","gpt-5.4-mini","gpt-5.4-nano","gpt-5.3","gpt-5.3-instant",
-                 "gpt-5.3-codex","gpt-5-codex","gpt-5.2","gpt-5.1","gpt-5",
-                 "o3-mini","o1","o1-mini","gpt-4o","gpt-4o-mini"],
+        "text":  ["gpt-5.5","gpt-5.4","gpt-5.4-mini","gpt-5.4-nano","gpt-5.3","gpt-5.3-instant",
+                  "gpt-5.3-codex","gpt-5-codex","gpt-5.2","gpt-5.1","gpt-5",
+                  "o3-mini","o1","o1-mini","gpt-4o","gpt-4o-mini"],
+        "image": ["gpt-image-2","dall-e-3","gpt-image-1.5","gpt-image-1-mini"],
+        "audio": ["tts-1","tts-1-hd","whisper-1","gpt-4o-realtime-preview","gpt-realtime-2"],
+        "video": ["sora-video-1.0-api"],
     },
     "anthropic": {
         "text": ["claude-opus-4-8","claude-opus-4-7","claude-opus-4-6","claude-sonnet-4-6",
                  "claude-sonnet-4-5","claude-haiku-4-5-20251001",
                  "claude-3-7-sonnet-latest","claude-3-5-sonnet-latest",
                  "claude-3-5-haiku-latest","claude-3-opus-20240229"],
+        # vision input via text models (no dedicated image-gen endpoint)
     },
     "gemini": {
         "text":  ["gemini-3.5-flash","gemini-3.1-pro","gemini-3.1-flash-lite",
                   "gemini-3-pro","gemini-3-flash","gemini-2.5-pro","gemini-2.5-flash",
                   "gemini-1.5-pro","gemini-1.5-flash"],
-        "image": ["gemini-3.1-flash-image","gemini-3-pro-image","imagen-4","imagen-3.0-generate-002"],
+        "image": ["gemini-3.1-flash-image","gemini-3-pro-image",
+                  "imagen-4","imagen-3.0-generate-002"],
+        "audio": ["gemini-live-2.5-flash-native-audio"],
+        "video": ["veo-3.1-generate-001"],
     },
     "llm7": {
         "text": ["default","fast","pro",
@@ -93,23 +100,27 @@ PROVIDER_MODELS = {
                  "claude-3-5-sonnet-latest","claude-opus-4-7",
                  "llama-3.3-70b-instruct","llama-3.1-405b",
                  "mistral-large-latest","mixtral-8x22b","gpt-oss-120b"],
+        "image": ["flux-1-schnell","flux-1-dev","dreamshaper-8"],
     },
     "mistral": {
-        "text": ["mistral-large-latest","mistral-small-latest",
-                 "ministral-14b","ministral-8b","ministral-3b","codestral-latest"],
+        "text":  ["mistral-large-latest","mistral-small-latest",
+                  "ministral-14b","ministral-8b","ministral-3b","codestral-latest"],
+        "image": ["pixtral-12b-2409","mistral-ocr"],  # vision/OCR
     },
     "xai": {
-        "text": ["grok-4.3","grok-4.20-non-reasoning","grok-4.1","grok-2","grok-2-mini"],
+        "text":  ["grok-4.3","grok-4.20-non-reasoning","grok-4.1","grok-2","grok-2-mini"],
+        "image": ["grok-imagine-api","grok-imagine-pro"],
+        "video": ["grok-imagine-video","grok-video-pro"],
     },
 }
 
 DEFAULT_PROVIDER_MODELS = {
-    "openai":    {"text": "gpt-4o-mini"},
+    "openai":    {"text": "gpt-4o-mini",       "image": "dall-e-3",               "audio": "tts-1"},
     "anthropic": {"text": "claude-sonnet-4-6"},
-    "gemini":    {"text": "gemini-2.5-flash"},
-    "llm7":      {"text": "default"},
+    "gemini":    {"text": "gemini-2.5-flash",  "image": "imagen-4",               "video": "veo-3.1-generate-001"},
+    "llm7":      {"text": "default",           "image": "flux-1-schnell"},
     "mistral":   {"text": "mistral-small-latest"},
-    "xai":       {"text": "grok-4.1"},
+    "xai":       {"text": "grok-4.1",          "image": "grok-imagine-api",       "video": "grok-imagine-video"},
 }
 
 PROVIDER_CHOICES = [
@@ -490,6 +501,94 @@ async def route_text(session, uid: int, messages: list, system: str = "", max_to
     raise ValueError(f"Unknown provider: {provider}")
 
 
+async def route_image(session, uid: int, prompt: str, width: int = 1024, height: int = 1024) -> tuple[bytes, str]:
+    """Route image generation to the active provider. Returns (image_bytes, model_label)."""
+    provider = get_active_provider(uid)
+
+    # ── Pollinations ──
+    if provider == "pollinations":
+        model_name = USER_MODELS.get(uid, {}).get("image", DEFAULT_MODELS["image"])
+        model = clean_model(model_name)
+        seed  = random.randint(1, 9_999_999)
+        enc   = urllib.parse.quote(prompt)
+        if has_personal_key(uid):
+            url = f"https://gen.pollinations.ai/image/{enc}?model={model}&width={width}&height={height}&nologo=true&seed={seed}"
+            async with session.get(url, headers=auth_headers(get_key(uid))) as r:
+                r.raise_for_status(); return await r.read(), model_name
+        else:
+            url = f"https://image.pollinations.ai/prompt/{enc}?model={model}&width={width}&height={height}&nologo=true&seed={seed}&nofeed=true"
+            async with session.get(url) as r:
+                r.raise_for_status(); return await r.read(), model_name
+
+    # ── OpenAI ──
+    if provider == "openai":
+        api_key = get_provider_key(uid, provider)
+        if not api_key:
+            raise ValueError("OpenAI key not set. Use `/connect provider:openai`.")
+        model = get_provider_model(uid, provider, "image")
+        size  = f"{width}x{height}" if f"{width}x{height}" in ("1024x1024","1792x1024","1024x1792") else "1024x1024"
+        async with session.post(
+            "https://api.openai.com/v1/images/generations",
+            headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+            json={"model": model, "prompt": prompt, "n": 1, "size": size},
+        ) as resp:
+            resp.raise_for_status(); data = await resp.json()
+        entry = data["data"][0]
+        if entry.get("url"):
+            async with session.get(entry["url"]) as r:
+                r.raise_for_status(); return await r.read(), f"🟢 {model}"
+        import base64 as _b64
+        return _b64.b64decode(entry["b64_json"]), f"🟢 {model}"
+
+    # ── Gemini / Imagen ──
+    if provider == "gemini":
+        api_key = get_provider_key(uid, provider)
+        if not api_key:
+            raise ValueError("Gemini key not set. Use `/connect provider:gemini`.")
+        model = get_provider_model(uid, provider, "image")
+        async with session.post(
+            f"https://generativelanguage.googleapis.com/v1beta/models/{model}:predict?key={api_key}",
+            headers={"Content-Type": "application/json"},
+            json={"instances": [{"prompt": prompt}], "parameters": {"sampleCount": 1}},
+        ) as resp:
+            resp.raise_for_status(); data = await resp.json()
+        import base64 as _b64
+        return _b64.b64decode(data["predictions"][0]["bytesBase64Encoded"]), f"🔵 {model}"
+
+    # ── LLM7 (FLUX via OpenAI-compat image endpoint) ──
+    if provider == "llm7":
+        api_key = get_provider_key(uid, provider)
+        model   = get_provider_model(uid, provider, "image")
+        hdrs    = {"Content-Type": "application/json"}
+        if api_key:
+            hdrs["Authorization"] = f"Bearer {api_key}"
+        async with session.post(
+            "https://api.llm7.io/v1/images/generations",
+            headers=hdrs,
+            json={"model": model, "prompt": prompt, "n": 1, "size": f"{width}x{height}"},
+        ) as resp:
+            resp.raise_for_status(); data = await resp.json()
+        async with session.get(data["data"][0]["url"]) as r:
+            r.raise_for_status(); return await r.read(), f"🌐 {model}"
+
+    # ── xAI Grok Imagine ──
+    if provider == "xai":
+        api_key = get_provider_key(uid, provider)
+        if not api_key:
+            raise ValueError("xAI key not set. Use `/connect provider:xai`.")
+        model = get_provider_model(uid, provider, "image")
+        async with session.post(
+            "https://api.x.ai/v1/images/generations",
+            headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+            json={"model": model, "prompt": prompt, "n": 1},
+        ) as resp:
+            resp.raise_for_status(); data = await resp.json()
+        async with session.get(data["data"][0]["url"]) as r:
+            r.raise_for_status(); return await r.read(), f"⚫ {model}"
+
+    raise ValueError(f"Provider '{provider}' does not support image generation.")
+
+
 # ──────────────────────────────────────────────
 #  API KEY MODAL
 # ──────────────────────────────────────────────
@@ -794,7 +893,7 @@ class ImageURLView(discord.ui.View):
 # ──────────────────────────────────────────────
 #  /image
 # ──────────────────────────────────────────────
-@bot.tree.command(name="image", description="Generate an image with AI")
+@bot.tree.command(name="image", description="Generate an image with AI (uses active image provider)")
 @app_commands.describe(prompt="Describe the image", size="Image size")
 @app_commands.choices(size=[
     app_commands.Choice(name="1024x1024 (square)",    value="1024x1024"),
@@ -802,32 +901,30 @@ class ImageURLView(discord.ui.View):
     app_commands.Choice(name="1024x1792 (portrait)",  value="1024x1792"),
 ])
 async def cmd_image(interaction: discord.Interaction, prompt: str, size: str = "1024x1024"):
-    uid = interaction.user.id
-    model_name = USER_MODELS.get(uid, {}).get("image", DEFAULT_MODELS["image"])
-    if not is_free_model(model_name) and not has_personal_key(uid):
-        await interaction.response.send_message(embed=paid_model_no_key_embed(model_name), ephemeral=True)
-        return
+    uid      = interaction.user.id
+    provider = get_active_provider(uid)
+
+    # Pollinations-specific free model gate
+    if provider == "pollinations":
+        model_name = USER_MODELS.get(uid, {}).get("image", DEFAULT_MODELS["image"])
+        if not is_free_model(model_name) and not has_personal_key(uid):
+            await interaction.response.send_message(embed=paid_model_no_key_embed(model_name), ephemeral=True)
+            return
+
     await interaction.response.defer(thinking=True)
-    model = get_model(uid, "image")
+    w, h = (int(x) for x in size.split("x"))
+
     try:
         async with aiohttp.ClientSession() as session:
-            w, h = size.split("x")
-            seed = random.randint(1, 9999999)
-            encoded = urllib.parse.quote(prompt)
-            if has_personal_key(uid):
-                img_url = f"https://gen.pollinations.ai/image/{encoded}?model={model}&width={w}&height={h}&nologo=true&seed={seed}"
-                async with session.get(img_url, headers=auth_headers(get_key(uid))) as resp:
-                    resp.raise_for_status(); img_bytes = await resp.read()
-            else:
-                img_url = f"https://image.pollinations.ai/prompt/{encoded}?model={model}&width={w}&height={h}&nologo=true&seed={seed}&nofeed=true"
-                async with session.get(img_url) as resp:
-                    resp.raise_for_status(); img_bytes = await resp.read()
+            img_bytes, model_label = await route_image(session, uid, prompt, w, h)
+
         file  = discord.File(fp=io.BytesIO(img_bytes), filename="nov.png")
         embed = discord.Embed(color=BOT_COLOR)
-        embed.set_author(name=f"🖼️ {model_name} - {size}")
+        embed.set_author(name=f"🖼️ {model_label} — {size}")
         embed.set_image(url="attachment://nov.png")
         embed.set_footer(text=prompt[:100])
-        await interaction.followup.send(embed=embed, file=file, view=ImageURLView(img_url))
+        await interaction.followup.send(embed=embed, file=file)
+
     except Exception as e:
         await interaction.followup.send(embed=discord.Embed(title="❌ Error", description=f"`{e}`", color=0xED4245))
 

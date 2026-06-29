@@ -988,7 +988,7 @@ async def cmd_video(interaction: discord.Interaction, prompt: str):
 #  /model — provider-aware
 # ──────────────────────────────────────────────
 @bot.tree.command(name="model", description="Change the AI model (and switch active provider)")
-@app_commands.describe(provider="Which provider", type="Generation type", name="Model name (autocomplete)")
+@app_commands.describe(provider="Which provider", type="Generation type", model="Model name (autocomplete)")
 @app_commands.choices(provider=PROVIDER_CHOICES)
 @app_commands.choices(type=[
     app_commands.Choice(name="💬 Text",  value="text"),
@@ -996,29 +996,29 @@ async def cmd_video(interaction: discord.Interaction, prompt: str):
     app_commands.Choice(name="🔊 Audio", value="audio"),
     app_commands.Choice(name="🎬 Video", value="video"),
 ])
-@app_commands.autocomplete(name=provider_model_autocomplete)
-async def cmd_model(interaction: discord.Interaction, type: str, name: str, provider: str = "pollinations"):
+@app_commands.autocomplete(model=provider_model_autocomplete)
+async def cmd_model(interaction: discord.Interaction, type: str, model: str, provider: str = "pollinations"):
     uid = interaction.user.id
     p   = PROVIDERS[provider]
 
     if provider == "pollinations":
         if not has_personal_key(uid):
             await interaction.response.send_message(embed=not_logged_in_embed(), ephemeral=True); return
-        if not is_valid_model(type, name):
-            await interaction.response.send_message(embed=invalid_model_embed(type, name, uid), ephemeral=True); return
-        if not is_free_model(name) and not has_personal_key(uid):
-            await interaction.response.send_message(embed=paid_model_no_key_embed(name), ephemeral=True); return
+        if not is_valid_model(type, model):
+            await interaction.response.send_message(embed=invalid_model_embed(type, model, uid), ephemeral=True); return
+        if not is_free_model(model) and not has_personal_key(uid):
+            await interaction.response.send_message(embed=paid_model_no_key_embed(model), ephemeral=True); return
         if uid not in USER_MODELS:
             USER_MODELS[uid] = dict(DEFAULT_MODELS)
         prev = USER_MODELS[uid].get(type, DEFAULT_MODELS[type])
-        USER_MODELS[uid][type] = name
+        USER_MODELS[uid][type] = model
         if type == "text":
             USER_TEXT_PROVIDER.pop(uid, None)
         embed = discord.Embed(title="✅ Pollinations model updated", color=0x57F287)
         embed.add_field(name="Type",   value=f"{TYPE_EMOJI[type]} {type}", inline=True)
         embed.add_field(name="Before", value=f"`{prev}`",                  inline=True)
-        embed.add_field(name="Now",    value=f"`{name}`",                  inline=True)
-        if "(PAID)" in name:
+        embed.add_field(name="Now",    value=f"`{model}`",                 inline=True)
+        if "(PAID)" in model:
             embed.add_field(name="⚠️ Note",
                 value="This model requires Pollen credits at [enter.pollinations.ai](https://enter.pollinations.ai)",
                 inline=False)
@@ -1028,22 +1028,22 @@ async def cmd_model(interaction: discord.Interaction, type: str, name: str, prov
     if not is_provider_connected(uid, provider):
         await interaction.response.send_message(embed=provider_not_connected_embed(provider), ephemeral=True); return
     valid = PROVIDER_MODELS.get(provider, {}).get(type, [])
-    if name not in valid:
+    if model not in valid:
         await interaction.response.send_message(
             embed=discord.Embed(
                 title="❌ Unknown model",
-                description=f"`{name}` not in **{p['name']}** {type} models.\n\n**Available:**\n" +
+                description=f"`{model}` not in **{p['name']}** {type} models.\n\n**Available:**\n" +
                             "\n".join(f"`{m}`" for m in valid),
                 color=0xED4245), ephemeral=True); return
     prev = get_provider_model(uid, provider, type)
-    set_provider_model(uid, provider, type, name)
+    set_provider_model(uid, provider, type, model)
     if type == "text":
         USER_TEXT_PROVIDER[uid] = provider
     embed = discord.Embed(title="✅ Model updated", color=0x57F287)
     embed.add_field(name="Provider", value=f"{p['emoji']} {p['name']}", inline=True)
     embed.add_field(name="Type",     value=f"{TYPE_EMOJI.get(type,type)} {type}", inline=True)
     embed.add_field(name="Before",   value=f"`{prev or 'default'}`", inline=True)
-    embed.add_field(name="Now",      value=f"`{name}`",              inline=True)
+    embed.add_field(name="Now",      value=f"`{model}`",             inline=True)
     if type == "text":
         embed.add_field(name="🔁 Active provider", value=f"Switched to **{p['name']}**", inline=False)
     await interaction.response.send_message(embed=embed, ephemeral=True)

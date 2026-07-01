@@ -764,7 +764,267 @@
     margin-top: 6px;
   }
 
+  /* ── TRY ONLINE CHAT ── */
+  #chat-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.85);
+    backdrop-filter: blur(12px);
+    z-index: 9998;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  #chat-overlay.show { display: flex; }
+  #chat-box {
+    width: min(920px, 100%);
+    height: min(680px, 92vh);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    display: flex;
+    overflow: hidden;
+  }
+  #chat-sidebar {
+    width: 220px;
+    flex-shrink: 0;
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    background: var(--bg);
+  }
+  #chat-sidebar-header {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  #chat-sidebar-title {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  #chat-close {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--dim);
+    cursor: pointer;
+    padding: 4px 8px;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    background: none;
+    transition: color .2s, border-color .2s;
+  }
+  #chat-close:hover { color: var(--fg); border-color: var(--muted); }
+  #chat-new-btn {
+    margin: 10px 12px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .06em;
+    color: var(--white);
+    background: var(--discord);
+    border: none;
+    padding: 9px 12px;
+    border-radius: 2px;
+    cursor: pointer;
+    text-align: center;
+    transition: opacity .2s;
+  }
+  #chat-new-btn:hover { opacity: .85; }
+  #chat-history-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 4px 8px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .chat-history-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 2px;
+    cursor: pointer;
+    font-size: 12px;
+    color: var(--dim);
+    transition: background .15s, color .15s;
+    position: relative;
+  }
+  .chat-history-item:hover { background: var(--surface); color: var(--fg); }
+  .chat-history-item.active { background: var(--surface); color: var(--white); border-left: 2px solid var(--green); }
+  .chat-history-title {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .chat-history-del {
+    font-size: 12px;
+    color: var(--muted);
+    opacity: 0;
+    transition: opacity .15s, color .15s;
+    flex-shrink: 0;
+  }
+  .chat-history-item:hover .chat-history-del { opacity: 1; }
+  .chat-history-del:hover { color: #ED4245; }
+  #chat-sidebar-footer {
+    padding: 10px 12px;
+    border-top: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: .04em;
+    line-height: 1.5;
+  }
+  #chat-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  #chat-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    gap: 12px;
+  }
+  #chat-model-select {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .04em;
+    color: var(--fg);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 7px 10px;
+    cursor: pointer;
+    outline: none;
+    max-width: 220px;
+  }
+  #chat-model-select:hover { border-color: var(--muted); }
+  #chat-clear-btn {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--dim);
+    background: none;
+    border: 1px solid var(--border);
+    padding: 6px 10px;
+    border-radius: 2px;
+    cursor: pointer;
+    letter-spacing: .04em;
+    transition: color .2s, border-color .2s;
+  }
+  #chat-clear-btn:hover { color: var(--fg); border-color: var(--muted); }
+  #chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  #chat-messages:empty::before {
+    content: 'Ask anything — powered by 12 free Pollinations text models.';
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 300;
+    margin: auto;
+  }
+  .chat-msg {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-width: 82%;
+  }
+  .chat-msg.user { align-self: flex-end; align-items: flex-end; }
+  .chat-msg.assistant { align-self: flex-start; align-items: flex-start; }
+  .chat-msg-role {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .chat-msg-bubble {
+    padding: 10px 14px;
+    border-radius: 3px;
+    font-size: 13px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+  .chat-msg.user .chat-msg-bubble {
+    background: var(--discord);
+    color: #fff;
+  }
+  .chat-msg.assistant .chat-msg-bubble {
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--fg);
+  }
+  .chat-msg.assistant .chat-msg-bubble.loading {
+    color: var(--muted);
+    font-style: italic;
+  }
+  .chat-msg.assistant .chat-msg-bubble.error {
+    border-color: rgba(237,66,69,.4);
+    color: #ff8b8d;
+  }
+  #chat-input-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    padding: 14px 16px;
+    border-top: 1px solid var(--border);
+  }
+  #chat-input {
+    flex: 1;
+    resize: none;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    color: var(--fg);
+    font-family: var(--sans);
+    font-size: 13px;
+    padding: 10px 12px;
+    outline: none;
+    max-height: 120px;
+    line-height: 1.5;
+    transition: border-color .2s;
+  }
+  #chat-input:focus { border-color: var(--muted); }
+  #chat-send-btn {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: #fff;
+    background: var(--discord);
+    border: none;
+    padding: 10px 16px;
+    border-radius: 2px;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: opacity .2s;
+  }
+  #chat-send-btn:hover { opacity: .85; }
+  #chat-send-btn:disabled { opacity: .4; cursor: not-allowed; }
+
   @media (max-width: 720px) {
+    #chat-box { flex-direction: column; height: 92vh; }
+    #chat-sidebar { width: 100%; height: 130px; border-right: none; border-bottom: 1px solid var(--border); }
+    #chat-history-list { flex-direction: row; overflow-x: auto; overflow-y: hidden; }
+    .chat-history-item { flex-shrink: 0; min-width: 140px; }
+  }
+
+
     nav { padding: 16px 20px; }
     .nav-links { display: none; }
     .steps { grid-template-columns: 1fr; }
@@ -790,6 +1050,7 @@
     <li><a href="#features">Features</a></li>
     <li><a href="#faq">FAQ</a></li>
     <li><a href="https://github.com/Nov-AI/nov-ai.github.io" target="_blank" class="btn-nav">GitHub ↗</a></li>
+    <li><button type="button" id="tryonline-nav-btn" class="btn-nav" style="cursor:pointer;font-family:var(--mono);">Try Online</button></li>
     <li><a href="https://discord.com/oauth2/authorize?client_id=1520183989200093205&permissions=8&integration_type=0&scope=bot+applications.commands" target="_blank" class="btn-add-nav">Add to Discord</a></li>
   </ul>
 </nav>
@@ -823,6 +1084,10 @@
       <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
       View Source
     </a>
+    <button type="button" id="tryonline-hero-btn" class="btn-ghost" style="cursor:pointer;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 9l3 3-3 3"/><path d="M13 15h3"/><rect x="3" y="4" width="18" height="16" rx="2"/></svg>
+      Try It Online
+    </button>
   </div>
 </div>
 
@@ -1367,6 +1632,48 @@
   </div>
 </div>
 
+<!-- ──────────────────────────────────────────────
+     TRY ONLINE — client-side chat, calls Pollinations
+     public text API directly, history in localStorage
+────────────────────────────────────────────── -->
+<div id="chat-overlay">
+  <div id="chat-box">
+    <div id="chat-sidebar">
+      <div id="chat-sidebar-header">
+        <span id="chat-sidebar-title">Chats</span>
+        <button id="chat-close" title="Close">ESC</button>
+      </div>
+      <button id="chat-new-btn">+ New chat</button>
+      <div id="chat-history-list"></div>
+      <div id="chat-sidebar-footer">Saved locally in your browser · never sent anywhere but Pollinations</div>
+    </div>
+    <div id="chat-main">
+      <div id="chat-topbar">
+        <select id="chat-model-select">
+          <option value="openai">GPT-5.4 Nano</option>
+          <option value="gpt-5.4-mini">GPT-5.4 Mini</option>
+          <option value="mistral">Mistral Small 4</option>
+          <option value="mistral-large">Mistral Large 3</option>
+          <option value="llama">Meta Llama 3.3 70B</option>
+          <option value="llama-scout">Meta Llama 4 Scout</option>
+          <option value="deepseek">DeepSeek V4 Flash</option>
+          <option value="deepseek-pro">DeepSeek V4 Pro</option>
+          <option value="qwen-coder">Qwen3 Coder 30B</option>
+          <option value="phi">Phi-4</option>
+          <option value="midijourney">MIDIjourney</option>
+          <option value="glm">Z.ai GLM-5.2</option>
+        </select>
+        <button id="chat-clear-btn">Clear chat</button>
+      </div>
+      <div id="chat-messages"></div>
+      <div id="chat-input-row">
+        <textarea id="chat-input" rows="1" placeholder="Message NovAI…"></textarea>
+        <button id="chat-send-btn">Send</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 /* ── NAV SCROLL ── */
 const nav = document.getElementById('nav');
@@ -1614,6 +1921,225 @@ document.querySelectorAll('.faq-item').forEach(item => {
     }
   });
 
+})();
+
+/* ══════════════════════════════════════════════
+   TRY ONLINE CHAT
+   Client-side only — calls Pollinations public
+   text API directly, history saved in localStorage.
+══════════════════════════════════════════════ */
+(function tryOnlineChat() {
+  const STORAGE_KEY = 'novai_chats_v1';
+
+  const overlay      = document.getElementById('chat-overlay');
+  const navBtn       = document.getElementById('tryonline-nav-btn');
+  const heroBtn      = document.getElementById('tryonline-hero-btn');
+  const closeBtn     = document.getElementById('chat-close');
+  const newBtn       = document.getElementById('chat-new-btn');
+  const historyList  = document.getElementById('chat-history-list');
+  const modelSelect  = document.getElementById('chat-model-select');
+  const clearBtn     = document.getElementById('chat-clear-btn');
+  const messagesEl   = document.getElementById('chat-messages');
+  const inputEl      = document.getElementById('chat-input');
+  const sendBtn      = document.getElementById('chat-send-btn');
+
+  let chats = [];
+  let activeId = null;
+  let sending = false;
+
+  // ── persistence ──
+  function loadChats() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      chats = raw ? JSON.parse(raw) : [];
+    } catch { chats = []; }
+  }
+  function saveChats() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(chats)); } catch {}
+  }
+  function getActive() {
+    return chats.find(c => c.id === activeId) || null;
+  }
+
+  // ── chat management ──
+  function newChat() {
+    const chat = {
+      id: 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+      title: 'New chat',
+      model: modelSelect.value,
+      messages: [],
+      updated: Date.now(),
+    };
+    chats.unshift(chat);
+    activeId = chat.id;
+    saveChats();
+    renderHistory();
+    renderMessages();
+  }
+
+  function deleteChat(id, ev) {
+    ev.stopPropagation();
+    chats = chats.filter(c => c.id !== id);
+    saveChats();
+    if (activeId === id) {
+      activeId = chats.length ? chats[0].id : null;
+      if (!activeId) newChat();
+    }
+    renderHistory();
+    renderMessages();
+  }
+
+  function selectChat(id) {
+    activeId = id;
+    const c = getActive();
+    if (c) modelSelect.value = c.model;
+    renderHistory();
+    renderMessages();
+  }
+
+  function renderHistory() {
+    historyList.innerHTML = '';
+    chats.sort((a, b) => b.updated - a.updated).forEach(c => {
+      const item = document.createElement('div');
+      item.className = 'chat-history-item' + (c.id === activeId ? ' active' : '');
+      item.innerHTML = `<span class="chat-history-title"></span><span class="chat-history-del">✕</span>`;
+      item.querySelector('.chat-history-title').textContent = c.title || 'New chat';
+      item.addEventListener('click', () => selectChat(c.id));
+      item.querySelector('.chat-history-del').addEventListener('click', (e) => deleteChat(c.id, e));
+      historyList.appendChild(item);
+    });
+  }
+
+  function renderMessages() {
+    const c = getActive();
+    messagesEl.innerHTML = '';
+    if (!c) return;
+    c.messages.forEach(m => appendBubble(m.role, m.content, false));
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  function appendBubble(role, content, scroll = true) {
+    const wrap = document.createElement('div');
+    wrap.className = 'chat-msg ' + role;
+    const label = document.createElement('div');
+    label.className = 'chat-msg-role';
+    label.textContent = role === 'user' ? 'You' : 'NovAI';
+    const bubble = document.createElement('div');
+    bubble.className = 'chat-msg-bubble';
+    bubble.textContent = content;
+    wrap.appendChild(label);
+    wrap.appendChild(bubble);
+    messagesEl.appendChild(wrap);
+    if (scroll) messagesEl.scrollTop = messagesEl.scrollHeight;
+    return bubble;
+  }
+
+  // ── sending ──
+  async function sendMessage() {
+    if (sending) return;
+    const text = inputEl.value.trim();
+    if (!text) return;
+    let c = getActive();
+    if (!c) { newChat(); c = getActive(); }
+
+    c.messages.push({ role: 'user', content: text });
+    if (c.messages.length === 1) c.title = text.slice(0, 40);
+    c.model = modelSelect.value;
+    c.updated = Date.now();
+    saveChats();
+    renderHistory();
+    appendBubble('user', text);
+    inputEl.value = '';
+    inputEl.style.height = 'auto';
+
+    sending = true;
+    sendBtn.disabled = true;
+    const loadingBubble = appendBubble('assistant', 'Thinking…');
+    loadingBubble.classList.add('loading');
+
+    try {
+      const resp = await fetch('https://text.pollinations.ai/openai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: c.model,
+          messages: [
+            { role: 'system', content: 'Your name is NovAI. You are a helpful, concise AI assistant. Always refer to yourself as NovAI, never as ChatGPT, Claude, Gemini, or any other AI name.' },
+            ...c.messages,
+          ],
+        }),
+      });
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      const data = await resp.json();
+      const reply = data?.choices?.[0]?.message?.content?.trim() || '(empty response)';
+
+      loadingBubble.classList.remove('loading');
+      loadingBubble.textContent = reply;
+      c.messages.push({ role: 'assistant', content: reply });
+      c.updated = Date.now();
+      saveChats();
+    } catch (err) {
+      loadingBubble.classList.remove('loading');
+      loadingBubble.classList.add('error');
+      loadingBubble.textContent = 'Something went wrong reaching Pollinations. Try again in a moment.';
+    } finally {
+      sending = false;
+      sendBtn.disabled = false;
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+  }
+
+  // ── open/close ──
+  function openChat() {
+    loadChats();
+    if (!chats.length) newChat();
+    else { activeId = chats.sort((a, b) => b.updated - a.updated)[0].id; modelSelect.value = getActive().model; }
+    renderHistory();
+    renderMessages();
+    overlay.classList.add('show');
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => inputEl.focus(), 50);
+  }
+  function closeChat() {
+    overlay.classList.remove('show');
+    document.body.style.overflow = '';
+  }
+
+  navBtn?.addEventListener('click', openChat);
+  heroBtn?.addEventListener('click', openChat);
+  closeBtn.addEventListener('click', closeChat);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) closeChat(); });
+  document.addEventListener('keydown', (e) => {
+    if (overlay.classList.contains('show') && e.key === 'Escape') closeChat();
+  });
+
+  newBtn.addEventListener('click', newChat);
+  clearBtn.addEventListener('click', () => {
+    const c = getActive();
+    if (!c) return;
+    c.messages = [];
+    c.title = 'New chat';
+    saveChats();
+    renderHistory();
+    renderMessages();
+  });
+
+  sendBtn.addEventListener('click', sendMessage);
+  inputEl.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+  inputEl.addEventListener('input', () => {
+    inputEl.style.height = 'auto';
+    inputEl.style.height = Math.min(inputEl.scrollHeight, 120) + 'px';
+  });
+
+  modelSelect.addEventListener('change', () => {
+    const c = getActive();
+    if (c) { c.model = modelSelect.value; saveChats(); }
+  });
 })();
 </script>
 </body>

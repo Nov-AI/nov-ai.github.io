@@ -102,6 +102,7 @@ USER_PROVIDER_MODELS: dict[int, dict[str, dict]] = {}
 # ──────────────────────────────────────────────
 PROVIDERS = {
     "pollinations": {"name": "Pollinations AI", "emoji": "🌸", "url": BASE_URL,                                           "needs_key": False},
+    "sixfinger":    {"name": "SixFinger API",    "emoji": "6️⃣", "url": "https://api.sixfinger.live/v1",                   "needs_key": True},
     "openai":       {"name": "OpenAI",           "emoji": "🟢", "url": "https://api.openai.com/v1",                       "needs_key": True},
     "anthropic":    {"name": "Anthropic",         "emoji": "🟠", "url": "https://api.anthropic.com",                      "needs_key": True},
     "gemini":       {"name": "Google Gemini",     "emoji": "🔵", "url": "https://generativelanguage.googleapis.com/v1beta","needs_key": True},
@@ -111,6 +112,14 @@ PROVIDERS = {
 }
 
 PROVIDER_MODELS = {
+    "sixfinger": {
+        "text": ["claude-sonnet-4-6","claude-haiku-4-5","claude-opus-4-6",
+                 "gpt-5.4","gpt-5.4-mini","gpt-5.3","gpt-4o","gpt-4o-mini",
+                 "gemini-3.1-pro","gemini-3.5-flash","gemini-2.5-flash",
+                 "deepseek-v3.2","deepseek-r1","deepseek-v3",
+                 "llama-3.3-70b","llama-3.1-405b",
+                 "mistral-large-latest","qwen-3.7-max","grok-4.1"],
+    },
     "openai": {
         "text":  ["gpt-5.5","gpt-5.4","gpt-5.4-mini","gpt-5.4-nano","gpt-5.3","gpt-5.3-instant",
                   "gpt-5.3-codex","gpt-5-codex","gpt-5.2","gpt-5.1","gpt-5",
@@ -159,6 +168,7 @@ PROVIDER_MODELS = {
 }
 
 DEFAULT_PROVIDER_MODELS = {
+    "sixfinger": {"text": "claude-sonnet-4-6"},
     "openai":    {"text": "gpt-4o-mini",       "image": "dall-e-3",               "audio": "tts-1"},
     "anthropic": {"text": "claude-sonnet-4-6"},
     "gemini":    {"text": "gemini-2.5-flash",  "image": "imagen-4",               "video": "veo-3.1-generate-001"},
@@ -169,6 +179,7 @@ DEFAULT_PROVIDER_MODELS = {
 
 PROVIDER_CHOICES = [
     app_commands.Choice(name="🌸 Pollinations AI",       value="pollinations"),
+    app_commands.Choice(name="6️⃣ SixFinger (free Claude)", value="sixfinger"),
     app_commands.Choice(name="🟢 OpenAI",                value="openai"),
     app_commands.Choice(name="🟠 Anthropic (Claude)",    value="anthropic"),
     app_commands.Choice(name="🔵 Google Gemini",         value="gemini"),
@@ -489,8 +500,8 @@ async def route_text(session, uid: int, messages: list, system: str = "", max_to
                 resp.raise_for_status()
                 return await resp.text(), model_name
 
-    # ── OpenAI-compatible (openai / llm7 / mistral / xai) ──
-    if provider in ("openai", "llm7", "mistral", "xai"):
+    # ── OpenAI-compatible (openai / llm7 / mistral / xai / sixfinger) ──
+    if provider in ("openai", "llm7", "mistral", "xai", "sixfinger"):
         api_key  = get_provider_key(uid, provider)
         model    = get_provider_model(uid, provider, "text")
         base_url = PROVIDERS[provider]["url"]

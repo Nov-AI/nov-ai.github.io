@@ -103,7 +103,7 @@ USER_PROVIDER_MODELS: dict[int, dict[str, dict]] = {}
 PROVIDERS = {
     "pollinations": {"name": "Pollinations AI", "emoji": "🌸", "url": BASE_URL,                                           "needs_key": False},
     "sixfinger":    {"name": "SixFinger API",    "emoji": "6️⃣", "url": "https://api.sixfinger.live/v1",                   "needs_key": True},
-    "vercel":       {"name": "Vercel AI Gateway","emoji": "▲",  "url": "https://ai-gateway.vercel.sh/v1",                 "needs_key": True,  "dynamic_models": True},
+    "vercel":       {"name": "Vercel AI Gateway","emoji": "▲",  "url": "https://ai-gateway.vercel.sh/v1",                 "needs_key": False, "dynamic_models": True},
     "aqua":         {"name": "Aqua API",         "emoji": "💧", "url": "https://api.aquadevs.com/v1",                     "needs_key": True,  "dynamic_models": True},
     "openai":       {"name": "OpenAI",           "emoji": "🟢", "url": "https://api.openai.com/v1",                       "needs_key": True},
     "anthropic":    {"name": "Anthropic",         "emoji": "🟠", "url": "https://api.anthropic.com",                      "needs_key": True},
@@ -115,12 +115,10 @@ PROVIDERS = {
 
 PROVIDER_MODELS = {
     "sixfinger": {
-        "text": ["claude-sonnet-4-6","claude-haiku-4-5","claude-opus-4-6",
-                 "gpt-5.4","gpt-5.4-mini","gpt-5.3","gpt-4o","gpt-4o-mini",
-                 "gemini-3.1-pro","gemini-3.5-flash","gemini-2.5-flash",
-                 "deepseek-v3.2","deepseek-r1","deepseek-v3",
-                 "llama-3.3-70b","llama-3.1-405b",
-                 "mistral-large-latest","qwen-3.7-max","grok-4.1"],
+        # Fonte: https://api.sixfinger.live/docs#models (catalogo ufficiale)
+        "text": ["llama-8b-instant","allam-2-7b","deepseek-v4-flash","claude-sonnet-4-6",
+                 "gpt-5","gpt-5.4","gpt-5.5","glm-5","kimi-k2.7-code","deepseek-v3.2",
+                 "lfm-2.5-1.2b-thinking","qwen3-32b","llama-70b","gpt-oss-120b"],
     },
     "openai": {
         "text":  ["gpt-5.5","gpt-5.4","gpt-5.4-mini","gpt-5.4-nano","gpt-5.3","gpt-5.3-instant",
@@ -167,12 +165,97 @@ PROVIDER_MODELS = {
         "image": ["grok-imagine-api","grok-imagine-pro"],
         "video": ["grok-imagine-video","grok-video-pro"],
     },
+    "vercel": {
+        # Fonte: Gratisfy Free AI Model Browser — ID reali in formato creator/model
+        "text": [
+        "anthropic/claude-opus-4.8", "openai/gpt-5.5", "anthropic/claude-opus-4.7", 
+        "anthropic/claude-sonnet-5", "openai/gpt-5.4", "zai/glm-5.2-fast", "zai/glm-5.2", 
+        "google/gemini-3.5-flash", "anthropic/claude-sonnet-4.6", "google/gemini-3.1-pro-preview", 
+        "alibaba/qwen3.7-max", "minimax/minimax-m3", "openai/gpt-5.3-codex", 
+        "deepseek/deepseek-v4-pro", "anthropic/claude-opus-4.6", "moonshotai/kimi-k2.6", 
+        "openai/gpt-5.2", "openai/gpt-5.2-pro", "openai/gpt-5.2-chat", "xiaomi/mimo-v2.5-pro", 
+        "moonshotai/kimi-k2.7-code", "anthropic/claude-opus-4.5", "deepseek/deepseek-v4-flash", 
+        "xiaomi/mimo-v2-pro", "zai/glm-5.1", "openai/gpt-5.2-codex", "openai/gpt-5.4-mini", 
+        "alibaba/qwen-3.6-max-preview", "xai/grok-build-0.1", "alibaba/qwen3.6-plus", 
+        "google/gemini-3-pro-preview", "zai/glm-5", "alibaba/qwen3.7-plus", 
+        "openai/gpt-5.1-thinking", "openai/gpt-5.4-nano", "minimax/minimax-m2.7", 
+        "minimax/minimax-m2.7-highspeed", "moonshotai/kimi-k2.5", "zai/glm-5-turbo", 
+        "google/gemini-3-flash", "nvidia/nemotron-3-ultra-550b-a55b", "xai/grok-4.3", 
+        "alibaba/qwen3.6-27b", "xai/grok-4.20-reasoning-beta", "xai/grok-4.20-reasoning", 
+        "xai/grok-4.20-non-reasoning-beta", "xai/grok-4.20-non-reasoning", "openai/gpt-5-chat", 
+        "openai/gpt-5-codex", "kwaipilot/kat-coder-pro-v2", "openai/gpt-5.1-codex-max", 
+        "openai/gpt-5.1-codex", "anthropic/claude-sonnet-4.5", "kwaipilot/kat-coder-pro-v1", 
+        "zai/glm-5v-turbo", "zai/glm-4.7", "minimax/minimax-m2.5", 
+        "minimax/minimax-m2.5-highspeed", "alibaba/qwen3.5-plus", "anthropic/claude-opus-4.1", 
+        "deepseek/deepseek-v3.2", "deepseek/deepseek-v3.2-thinking", "openai/gpt-5-mini", 
+        "moonshotai/kimi-k2-thinking", "moonshotai/kimi-k2", "openai/o3-pro", "alibaba/qwen3-max", 
+        "alibaba/qwen3-max-thinking", "minimax/minimax-m2.1", "minimax/minimax-m2.1-lightning", 
+        "xiaomi/mimo-v2-flash", "anthropic/claude-opus-4", "openai/gpt-5.1-codex-mini", 
+        "xai/grok-4.1-fast-non-reasoning", "xai/grok-4.1-fast-reasoning", "openai/o3", 
+        "stepfun/step-3.7-flash", "anthropic/claude-haiku-4.5", "google/gemma-4-31b-it", 
+        "minimax/minimax-m2", "deepseek/deepseek-v3.1-terminus", "stepfun/step-3.5-flash", 
+        "google/gemini-2.5-pro", "google/gemma-4-26b-a4b-it", "openai/o4-mini", 
+        "nvidia/nemotron-3-super-120b-a12b", "inception/mercury-2", "zai/glm-4.6", 
+        "google/gemini-3.1-flash-lite", "google/gemini-3.1-flash-lite-preview", 
+        "openai/gpt-oss-120b", "openai/o1", "zai/glm-4.7-flash", "zai/glm-4.7-flashx", 
+        "alibaba/qwen3-coder-next", "deepseek/deepseek-v3.1", "alibaba/qwen3-vl-thinking", 
+        "google/gemini-2.5-flash", "deepseek/deepseek-r1", "openai/gpt-5-nano", 
+        "alibaba/qwen3-next-80b-a3b-thinking", "zai/glm-4.5", "openai/gpt-4.1", 
+        "alibaba/qwen3-max-preview", "mistral/devstral-2", "openai/o3-mini", "amazon/nova-2-lite", 
+        "alibaba/qwen3-coder", "perplexity/sonar-reasoning-pro", "mistral/devstral-small-2", 
+        "zai/glm-4.6v", "zai/glm-4.6v-flash", "zai/glm-4.5-air", "mistral/mistral-large-3", 
+        "alibaba/qwen-3-30b", "openai/gpt-oss-20b", "openai/gpt-4.1-mini", 
+        "mistral/mistral-medium-3.5", "meta/llama-4-maverick", 
+        "alibaba/qwen3-vl-235b-a22b-instruct", "alibaba/qwen3-vl-instruct", 
+        "nvidia/nemotron-3-nano-30b-a3b", "deepseek/deepseek-v3", 
+        "alibaba/qwen3-next-80b-a3b-instruct", "alibaba/qwen3-coder-30b-a3b", 
+        "alibaba/qwen-3-235b", "alibaba/qwen3-235b-a22b-thinking", "mistral/magistral-medium", 
+        "anthropic/claude-3.5-haiku", "perplexity/sonar", "alibaba/qwen-3-32b", 
+        "google/gemini-2.5-flash-lite", "openai/gpt-4o", "mistral/ministral-14b", 
+        "mistral/magistral-small", "alibaba/qwen-3-14b", "meta/llama-4-scout", 
+        "openai/gpt-4.1-nano", "mistral/devstral-small", "perplexity/sonar-pro", "zai/glm-4.5v", 
+        "nvidia/nemotron-nano-12b-v2-vl", "mistral/ministral-8b", "nvidia/nemotron-nano-9b-v2", 
+        "meta/llama-3.3-70b", "mistral/pixtral-large", "openai/gpt-4-turbo", "cohere/command-a", 
+        "amazon/nova-pro", "meta/llama-3.1-8b", "amazon/nova-lite", "openai/gpt-4o-mini", 
+        "mistral/ministral-3b", "meta/llama-3.1-70b", "meta/llama-3.2-90b", "amazon/nova-micro", 
+        "mistral/mistral-small", "meta/llama-3.2-3b", "anthropic/claude-3-haiku", 
+        "mistral/mistral-medium", "meta/llama-3.2-11b", "meta/llama-3.2-1b", 
+        "anthropic/claude-sonnet-4", "mistral/codestral", "cohere/rerank-v3.5", 
+        "cohere/rerank-v4-fast", "cohere/rerank-v4-pro", "sakana/fugu-ultra", 
+        "openai/gpt-4o-mini-search-preview", "openai/gpt-5.4-pro", "openai/gpt-5.5-pro", 
+        "openai/gpt-oss-safeguard-20b", "openai/gpt-3.5-turbo", "openai/gpt-3.5-turbo-instruct", 
+        "openai/gpt-4o-mini-transcribe", "openai/gpt-4o-transcribe", "openai/gpt-5-pro", 
+        "openai/gpt-5.1-instant", "openai/gpt-5.3-chat", "openai/gpt-realtime-mini", 
+        "openai/gpt-realtime-1.5", "xai/grok-4.20-multi-agent-beta", "xai/grok-4.20-multi-agent", 
+        "xai/grok-stt", "xai/grok-voice-think-fast-1.0", "interfaze/interfaze-beta", 
+        "moonshotai/kimi-k2.7-code-highspeed", "meituan/longcat-flash-chat", 
+        "meituan/longcat-flash-thinking-2601", "inception/mercury-coder-small", "xiaomi/mimo-v2.5", 
+        "mistral/mistral-nemo", "morph/morph-v3-fast", "morph/morph-v3-large", 
+        "openai/o3-deep-research", "mistral/pixtral-12b", "alibaba/qwen3.5-flash", 
+        "alibaba/qwen3-coder-plus", "voyage/rerank-2.5", "voyage/rerank-2.5-lite", 
+        "bytedance/seed-1.6", "bytedance/seed-1.8", "arcee-ai/trinity-large-preview", 
+        "arcee-ai/trinity-large-thinking", "arcee-ai/trinity-mini", "openai/whisper-1", 
+        ],
+    },
+    "aqua": {
+        # Fonte: Gratisfy Free AI Model Browser — ID reali Aqua API
+        "text": [
+        "opus-4.8", "gpt-5.5", "opus-4.7", "gpt-5.4", "glm-5.2", "gemini-3.5", "sonnet-4.6", 
+        "gemini-3.1-pro", "minimax-m3", "gpt-5.3-codex", "deepseek-v4-pro", "opus-4.6", 
+        "kimi-k2.6", "mimo-v2.5-pro", "kimi-k2.7", "opus-4.5", "deepseek-v4", "glm-5.1", 
+        "mimo-v2.5", "gpt-5.4-mini", "qwen-3.6", "qwen-3.7", "gpt-5.4-nano", "minimax-m2.7", 
+        "kimi-k2.5", "grok-4.3", "deepseek-v3.2", "step-3.7", "haiku-4.5", "gemma-4", 
+        "gemini-3.1-lite", "gpt-oss", "deepseek-v3.1", "llama-4", "deepseek-v3", "sonar", 
+        "llama-3.1", "mistral", "agnes", "nova", "diffusion-gemma", "gemini-3", "grok", 
+        "grok-4.2-thinking", "hermes", "mercury", "mistral-3.5", "nemotron", "qwen", "fugu-ultra", 
+        ],
+    },
 }
 
 DEFAULT_PROVIDER_MODELS = {
-    "sixfinger": {"text": "claude-sonnet-4-6"},
-    "vercel":    {"text": "openai/gpt-5.5"},   # creator/model format — verified via Vercel docs
-    "aqua":      {"text": ""},                 # picked live via /model after /models fetch — no verified default
+    "sixfinger": {"text": "gpt-5.4"},          # verificato in api.sixfinger.live/docs
+    "vercel":    {"text": "openai/gpt-5.4-nano"},   # creator/model format — verificato via Gratisfy
+    "aqua":      {"text": "gpt-5.4-nano"},          # verificato via Gratisfy (nessun prefisso)
     "openai":    {"text": "gpt-4o-mini",       "image": "dall-e-3",               "audio": "tts-1"},
     "anthropic": {"text": "claude-sonnet-4-6"},
     "gemini":    {"text": "gemini-2.5-flash",  "image": "imagen-4",               "video": "veo-3.1-generate-001"},
@@ -184,7 +267,7 @@ DEFAULT_PROVIDER_MODELS = {
 PROVIDER_CHOICES = [
     app_commands.Choice(name="🌸 Pollinations AI",       value="pollinations"),
     app_commands.Choice(name="6️⃣ SixFinger", value="sixfinger"),
-    app_commands.Choice(name="▲ Vercel AI Gateway",      value="vercel"),
+    app_commands.Choice(name="▲ Vercel AI Gateway (free, no key)", value="vercel"),
     app_commands.Choice(name="💧 Aqua API",              value="aqua"),
     app_commands.Choice(name="🟢 OpenAI",                value="openai"),
     app_commands.Choice(name="🟠 Anthropic (Claude)",    value="anthropic"),
@@ -193,6 +276,9 @@ PROVIDER_CHOICES = [
     app_commands.Choice(name="🔴 Mistral AI",            value="mistral"),
     app_commands.Choice(name="⚫ xAI / Grok",            value="xai"),
 ]
+
+# Providers you actually connect an account/key to (excludes free no-key options like Vercel)
+CONNECTABLE_PROVIDER_CHOICES = [c for c in PROVIDER_CHOICES if c.value != "vercel"]
 
 # ──────────────────────────────────────────────
 #  PERSONAS
@@ -730,8 +816,11 @@ async def provider_model_autocomplete(interaction: discord.Interaction, current:
                     resp.raise_for_status()
                     data = await resp.json()
             pool = [m.get("id","") for m in data.get("data", [])]
+            if not pool:
+                pool = PROVIDER_MODELS.get(provider, {}).get(tipo, [])
         except Exception:
-            pool = []
+            # Fallback alla lista statica verificata (Gratisfy) se il fetch live fallisce
+            pool = PROVIDER_MODELS.get(provider, {}).get(tipo, [])
     else:
         pool = PROVIDER_MODELS.get(provider, {}).get(tipo, [])
     return [app_commands.Choice(name=m, value=m) for m in pool if current.lower() in m.lower()][:25]
@@ -745,7 +834,7 @@ async def model_name_autocomplete(interaction: discord.Interaction, current: str
 # ──────────────────────────────────────────────
 @bot.tree.command(name="connect", description="Connect an AI provider account to Nov")
 @app_commands.describe(provider="Which provider to connect")
-@app_commands.choices(provider=PROVIDER_CHOICES)
+@app_commands.choices(provider=CONNECTABLE_PROVIDER_CHOICES)
 async def cmd_connect(interaction: discord.Interaction, provider: str):
     if provider != "pollinations":
         await interaction.response.send_modal(APIKeyModal(provider))
@@ -818,7 +907,7 @@ async def cmd_connect(interaction: discord.Interaction, provider: str):
 # ──────────────────────────────────────────────
 @bot.tree.command(name="disconnect", description="Remove a connected AI provider")
 @app_commands.describe(provider="Which provider to disconnect")
-@app_commands.choices(provider=PROVIDER_CHOICES)
+@app_commands.choices(provider=CONNECTABLE_PROVIDER_CHOICES)
 async def cmd_disconnect(interaction: discord.Interaction, provider: str):
     uid = interaction.user.id
     p   = PROVIDERS[provider]

@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0"/>
+<title>NovAI — Web App</title>
+<meta name="description" content="Chat with NovAI using real bot commands — /ask, /image, /model and more. Free, no account needed."/>
+<link rel="icon" type="image/png" href="../logo.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:      #080808;
+    --surface: #111111;
+    --card:    #0d0d0d;
+    --border:  #1c1c1c;
+    --muted:   #3a3a3a;
+    --dim:     #666666;
+    --fg:      #d8d8d8;
+    --white:   #ffffff;
+    --discord: #5865F2;
+    --green:   #3ecf8e;
+    --yellow:  #d4a800;
+    --red:     #ED4245;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Space Grotesk', sans-serif;
+    --vh: 1vh;
+  }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  #app {
+    height: 100vh;
+    height: calc(var(--vh, 1vh) * 100);
+    height: 100dvh;
+    width: 100vw;
+    display: flex;
+    overflow: hidden;
+  }
+
+  /* ── SIDEBAR ── */
+  #sidebar {
+    width: 240px;
+    flex-shrink: 0;
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    background: var(--surface);
+  }
+  #sidebar-header {
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  #sidebar-logo { width: 22px; height: 22px; object-fit: contain; flex-shrink: 0; }
+  #sidebar-wordmark {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: .1em;
+    color: var(--white);
+    text-transform: uppercase;
+  }
+  #home-link {
+    margin-left: auto;
+    color: var(--dim);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    transition: color .2s;
+  }
+  #home-link:hover { color: var(--fg); }
+  #new-chat-btn {
+    margin: 12px 14px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .06em;
+    color: var(--white);
+    background: var(--discord);
+    border: none;
+    padding: 10px 12px;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: opacity .2s;
+  }
+  #new-chat-btn:hover { opacity: .85; }
+  #history-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 4px 10px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .history-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 10px;
+    border-radius: 2px;
+    cursor: pointer;
+    font-size: 12px;
+    color: var(--dim);
+    transition: background .15s, color .15s;
+  }
+  .history-item:hover { background: var(--bg); color: var(--fg); }
+  .history-item.active { background: var(--bg); color: var(--white); border-left: 2px solid var(--green); padding-left: 8px; }
+  .history-title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .history-del { font-size: 12px; color: var(--muted); opacity: 0; transition: opacity .15s, color .15s; flex-shrink: 0; }
+  .history-item:hover .history-del { opacity: 1; }
+  .history-del:hover { color: var(--red); }
+  #sidebar-footer {
+    padding: 12px 16px;
+    border-top: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: .04em;
+    line-height: 1.5;
+  }
+
+  /* ── MAIN ── */
+  #main { flex: 1; display: flex; flex-direction: column; min-width: 0; position: relative; }
+  #topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--border);
+    gap: 12px;
+  }
+  #sidebar-toggle {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    color: var(--fg);
+    cursor: pointer;
+  }
+  #topbar-info {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--dim);
+    letter-spacing: .04em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  #topbar-model {
+    color: var(--green);
+  }
+  #help-btn {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--dim);
+    background: none;
+    border: 1px solid var(--border);
+    padding: 6px 10px;
+    border-radius: 2px;
+    cursor: pointer;
+    letter-spacing: .04em;
+    flex-shrink: 0;
+    transition: color .2s, border-color .2s;
+  }
+  #help-btn:hover { color: var(--fg); border-color: var(--muted); }
+
+  #messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  #messages:empty::before {
+    content: 'Type a message, or try /help to see all commands.';
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 300;
+    margin: auto;
+  }
+  .msg { display: flex; flex-direction: column; gap: 4px; max-width: 82%; }
+  .msg.user { align-self: flex-end; align-items: flex-end; }
+  .msg.assistant, .msg.system { align-self: flex-start; align-items: flex-start; }
+  .msg-role {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .msg-bubble {
+    padding: 10px 14px;
+    border-radius: 3px;
+    font-size: 13px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+  .msg.user .msg-bubble { background: var(--discord); color: #fff; }
+  .msg.assistant .msg-bubble { background: var(--card); border: 1px solid var(--border); color: var(--fg); }
+  .msg.system .msg-bubble {
+    background: transparent;
+    border: 1px dashed var(--border);
+    color: var(--dim);
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+  .msg-bubble.loading { color: var(--muted); font-style: italic; }
+  .msg-bubble.error { border-color: rgba(237,66,69,.4); color: #ff8b8d; }
+  .msg-bubble img { max-width: 100%; border-radius: 3px; display: block; margin-top: 4px; }
+  .cmd-help-table { display: flex; flex-direction: column; gap: 6px; font-family: var(--mono); font-size: 11px; }
+  .cmd-help-row { display: flex; gap: 10px; }
+  .cmd-help-name { color: var(--white); min-width: 190px; flex-shrink: 0; }
+  .cmd-help-desc { color: var(--dim); }
+
+  #input-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    padding: 14px 18px;
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  #msg-input {
+    flex: 1;
+    resize: none;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    color: var(--fg);
+    font-family: var(--sans);
+    font-size: 13px;
+    padding: 10px 12px;
+    outline: none;
+    max-height: 120px;
+    line-height: 1.5;
+    transition: border-color .2s;
+  }
+  #msg-input:focus { border-color: var(--muted); }
+  #send-btn {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: #fff;
+    background: var(--discord);
+    border: none;
+    padding: 10px 16px;
+    border-radius: 2px;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: opacity .2s;
+  }
+  #send-btn:hover { opacity: .85; }
+  #send-btn:disabled { opacity: .4; cursor: not-allowed; }
+
+  #sidebar-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.6);
+    z-index: 5;
+  }
+
+  @media (max-width: 720px) {
+    #sidebar-toggle { display: inline-flex; }
+    #sidebar {
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      width: 78vw;
+      max-width: 300px;
+      z-index: 10;
+      transform: translateX(-100%);
+      transition: transform .25s ease;
+    }
+    #sidebar.open { transform: translateX(0); }
+    #sidebar-backdrop.show { display: block; }
+    .msg { max-width: 92%; }
+  }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div id="sidebar-backdrop"></div>
+  <div id="sidebar">
+    <div id="sidebar-header">
+      <img id="sidebar-logo" src="../logo.png" alt="NovAI"/>
+      <span id="sidebar-wordmark">NovAI</span>
+      <a id="home-link" href="../" title="Back to homepage">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      </a>
+    </div>
+    <button id="new-chat-btn">+ New chat</button>
+    <div id="history-list"></div>
+    <div id="sidebar-footer">Saved locally in your browser · powered by Pollinations AI · free models only</div>
+  </div>
+
+  <div id="main">
+    <div id="topbar">
+      <button id="sidebar-toggle" aria-label="Toggle chat list">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <div id="topbar-info">
+        text: <span id="topbar-model" class="topbar-model">openai</span> · image: <span id="topbar-image-model" class="topbar-model">flux</span>
+      </div>
+      <button id="help-btn">/help</button>
+    </div>
+    <div id="messages"></div>
+    <div id="input-row">
+      <textarea id="msg-input" rows="1" placeholder="Message NovAI, or type /help…"></textarea>
+      <button id="send-btn">Send</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── 100dvh fallback for mobile browsers ── */
+function setVH() {
+  document.documentElement.style.setProperty('--vh', (window.innerHeight * 0.01) + 'px');
+}
+setVH();
+window.addEventListener('resize', setVH);
+window.visualViewport?.addEventListener('resize', setVH);
+
+/* ══════════════════════════════════════════════
+   NovAI Web App — command-driven client, mirrors
+   the Discord bot's slash commands. All requests
+   go directly to Pollinations' public free API.
+   Chats persist in localStorage only.
+══════════════════════════════════════════════ */
+(function () {
+  const STORAGE_KEY = 'novai_webapp_chats_v1';
+
+  const sidebarEl      = document.getElementById('sidebar');
+  const sidebarToggle  = document.getElementById('sidebar-toggle');
+  const sidebarBackdrop= document.getElementById('sidebar-backdrop');
+  const newChatBtn     = document.getElementById('new-chat-btn');
+  const historyList     = document.getElementById('history-list');
+  const messagesEl     = document.getElementById('messages');
+  const inputEl        = document.getElementById('msg-input');
+  const sendBtn        = document.getElementById('send-btn');
+  const helpBtn        = document.getElementById('help-btn');
+  const topbarModel    = document.getElementById('topbar-model');
+  const topbarImgModel = document.getElementById('topbar-image-model');
+
+  const TEXT_MODELS = {
+    'openai': 'GPT-5.4 Nano', 'gpt-5.4-mini': 'GPT-5.4 Mini',
+    'mistral': 'Mistral Small 4', 'mistral-large': 'Mistral Large 3',
+    'llama': 'Meta Llama 3.3 70B', 'llama-scout': 'Meta Llama 4 Scout',
+    'deepseek': 'DeepSeek V4 Flash', 'deepseek-pro': 'DeepSeek V4 Pro',
+    'qwen-coder': 'Qwen3 Coder 30B', 'phi': 'Phi-4',
+    'midijourney': 'MIDIjourney', 'glm': 'Z.ai GLM-5.2',
+  };
+  const IMAGE_MODELS = {
+    'flux': 'Flux Schnell', 'turbo': 'Z-Image Turbo', 'nanobanana': 'Nova Canvas',
+  };
+
+  let chats = [];
+  let activeId = null;
+  let sending = false;
+
+  // ── persistence ──
+  function loadChats() {
+    try { chats = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+    catch { chats = []; }
+  }
+  function saveChats() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(chats)); } catch {}
+  }
+  function getActive() { return chats.find(c => c.id === activeId) || null; }
+
+  function newChat() {
+    const chat = {
+      id: 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+      title: 'New chat',
+      textModel: 'openai',
+      imageModel: 'flux',
+      messages: [],
+      updated: Date.now(),
+    };
+    chats.unshift(chat);
+    activeId = chat.id;
+    saveChats();
+    renderHistory();
+    renderMessages();
+    updateTopbar();
+  }
+
+  function deleteChat(id, ev) {
+    ev.stopPropagation();
+    chats = chats.filter(c => c.id !== id);
+    saveChats();
+    if (activeId === id) { activeId = chats[0]?.id || null; if (!activeId) newChat(); }
+    renderHistory(); renderMessages(); updateTopbar();
+  }
+
+  function selectChat(id) {
+    activeId = id;
+    renderHistory(); renderMessages(); updateTopbar();
+    closeSidebar();
+  }
+
+  function updateTopbar() {
+    const c = getActive();
+    if (!c) return;
+    topbarModel.textContent = c.textModel;
+    topbarImgModel.textContent = c.imageModel;
+  }
+
+  function renderHistory() {
+    historyList.innerHTML = '';
+    chats.sort((a, b) => b.updated - a.updated).forEach(c => {
+      const item = document.createElement('div');
+      item.className = 'history-item' + (c.id === activeId ? ' active' : '');
+      const title = document.createElement('span');
+      title.className = 'history-title';
+      title.textContent = c.title || 'New chat';
+      const del = document.createElement('span');
+      del.className = 'history-del';
+      del.textContent = '✕';
+      del.addEventListener('click', (e) => deleteChat(c.id, e));
+      item.appendChild(title);
+      item.appendChild(del);
+      item.addEventListener('click', () => selectChat(c.id));
+      historyList.appendChild(item);
+    });
+  }
+
+  function renderMessages() {
+    const c = getActive();
+    messagesEl.innerHTML = '';
+    if (!c) return;
+    c.messages.forEach(m => appendBubble(m.role, m.content, m.isImage, false));
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  function appendBubble(role, content, isImage = false, scroll = true) {
+    const wrap = document.createElement('div');
+    wrap.className = 'msg ' + role;
+    const label = document.createElement('div');
+    label.className = 'msg-role';
+    label.textContent = role === 'user' ? 'You' : role === 'system' ? 'System' : 'NovAI';
+    const bubble = document.createElement('div');
+    bubble.className = 'msg-bubble';
+    if (isImage) {
+      const img = document.createElement('img');
+      img.src = content;
+      img.loading = 'lazy';
+      bubble.appendChild(img);
+    } else {
+      bubble.textContent = content;
+    }
+    wrap.appendChild(label);
+    wrap.appendChild(bubble);
+    messagesEl.appendChild(wrap);
+    if (scroll) messagesEl.scrollTop = messagesEl.scrollHeight;
+    return bubble;
+  }
+
+  function appendHelp() {
+    const wrap = document.createElement('div');
+    wrap.className = 'msg system';
+    const label = document.createElement('div');
+    label.className = 'msg-role';
+    label.textContent = 'System';
+    const bubble = document.createElement('div');
+    bubble.className = 'msg-bubble';
+    const table = document.createElement('div');
+    table.className = 'cmd-help-table';
+    const rows = [
+      ['(plain text)', 'Chat normally — full conversation context, like /text'],
+      ['/ask [prompt]', 'One-off reply, no context kept'],
+      ['/image [prompt]', 'Generate an image with the active image model'],
+      ['/model [name]', 'Switch text model — try: ' + Object.keys(TEXT_MODELS).join(', ')],
+      ['/model image [name]', 'Switch image model — try: ' + Object.keys(IMAGE_MODELS).join(', ')],
+      ['/translate [lang] [text]', 'Translate text to any language'],
+      ['/summarize [style] [text]', 'Styles: bullets, paragraph, sentence, tldr'],
+      ['/roast [target]', 'Harmless comedic roast'],
+      ['/clear', 'Clear this chat'],
+      ['/help', 'Show this list'],
+    ];
+    rows.forEach(([name, desc]) => {
+      const row = document.createElement('div');
+      row.className = 'cmd-help-row';
+      const n = document.createElement('span'); n.className = 'cmd-help-name'; n.textContent = name;
+      const d = document.createElement('span'); d.className = 'cmd-help-desc'; d.textContent = desc;
+      row.appendChild(n); row.appendChild(d);
+      table.appendChild(row);
+    });
+    bubble.appendChild(table);
+    wrap.appendChild(label);
+    wrap.appendChild(bubble);
+    messagesEl.appendChild(wrap);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  // ── API calls ──
+  async function callText(model, messages) {
+    const resp = await fetch('https://text.pollinations.ai/openai', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model, messages }),
+    });
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const data = await resp.json();
+    return data?.choices?.[0]?.message?.content?.trim() || '(empty response)';
+  }
+
+  function imageUrl(model, prompt) {
+    const seed = Math.floor(Math.random() * 9999999);
+    return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?model=${encodeURIComponent(model)}&width=1024&height=1024&nologo=true&seed=${seed}&nofeed=true`;
+  }
+
+  const SYS_PROMPT = 'Your name is NovAI. You are a helpful, concise AI assistant. Always refer to yourself as NovAI, never as ChatGPT, Claude, Gemini, or any other AI name.';
+
+  // ── command router ──
+  async function handleInput(raw) {
+    const text = raw.trim();
+    if (!text) return;
+    let c = getActive();
+    if (!c) { newChat(); c = getActive(); }
+
+    // /help
+    if (/^\/help\b/i.test(text)) {
+      appendHelp();
+      return;
+    }
+
+    // /clear
+    if (/^\/(clear|reset)\b/i.test(text)) {
+      c.messages = [];
+      c.title = 'New chat';
+      saveChats(); renderHistory(); renderMessages();
+      return;
+    }
+
+    // /model [image] [name]
+    let m = text.match(/^\/model\s+image\s+(\S+)/i);
+    if (m) {
+      const key = m[1].toLowerCase();
+      if (IMAGE_MODELS[key]) {
+        c.imageModel = key; saveChats(); updateTopbar();
+        appendBubble('assistant', `✅ Image model switched to ${IMAGE_MODELS[key]} (${key})`);
+      } else {
+        appendBubble('assistant', `❌ Unknown image model. Try: ${Object.keys(IMAGE_MODELS).join(', ')}`);
+      }
+      return;
+    }
+    m = text.match(/^\/model\s+(\S+)/i);
+    if (m) {
+      const key = m[1].toLowerCase();
+      if (TEXT_MODELS[key]) {
+        c.textModel = key; saveChats(); updateTopbar();
+        appendBubble('assistant', `✅ Text model switched to ${TEXT_MODELS[key]} (${key})`);
+      } else {
+        appendBubble('assistant', `❌ Unknown text model. Try: ${Object.keys(TEXT_MODELS).join(', ')}`);
+      }
+      return;
+    }
+
+    // /image [prompt]
+    m = text.match(/^\/image\s+([\s\S]+)/i);
+    if (m) {
+      appendBubble('user', text);
+      c.messages.push({ role: 'user', content: text });
+      if (c.messages.length === 1) c.title = text.slice(0, 40);
+      const loading = appendBubble('assistant', `Generating with ${IMAGE_MODELS[c.imageModel] || c.imageModel}…`);
+      loading.classList.add('loading');
+      const url = imageUrl(c.imageModel, m[1]);
+      const img = new Image();
+      img.onload = () => {
+        loading.classList.remove('loading');
+        loading.textContent = '';
+        const imgEl = document.createElement('img');
+        imgEl.src = url;
+        loading.appendChild(imgEl);
+        c.messages.push({ role: 'assistant', content: url, isImage: true });
+        c.updated = Date.now(); saveChats(); renderHistory();
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+      };
+      img.onerror = () => {
+        loading.classList.remove('loading'); loading.classList.add('error');
+        loading.textContent = 'Image generation failed — try again.';
+      };
+      img.src = url;
+      return;
+    }
+
+    // /translate [lang] [text]
+    m = text.match(/^\/translate\s+(\S+)\s+([\s\S]+)/i);
+    if (m) {
+      await runSimplePrompt(c, text, `Translate the following text to ${m[1]}. Return ONLY the translation, nothing else:\n\n${m[2]}`);
+      return;
+    }
+
+    // /summarize [style] [text]
+    m = text.match(/^\/summarize\s+(\S+)\s+([\s\S]+)/i);
+    if (m) {
+      const styles = { bullets: 'as bullet points', paragraph: 'as a short paragraph', sentence: 'in one sentence', tldr: 'as a TL;DR' };
+      const style = styles[m[1].toLowerCase()] || 'concisely';
+      await runSimplePrompt(c, text, `Summarize the following text ${style}:\n\n${m[2]}`);
+      return;
+    }
+
+    // /roast [target]
+    m = text.match(/^\/roast\s+([\s\S]+)/i);
+    if (m) {
+      await runSimplePrompt(c, text, `Write a short, harmless, funny comedic roast about: ${m[1]}. Keep it playful, no slurs, max 60 words.`);
+      return;
+    }
+
+    // /ask [prompt] — stateless single turn
+    m = text.match(/^\/ask\s+([\s\S]+)/i);
+    if (m) {
+      appendBubble('user', text);
+      c.messages.push({ role: 'user', content: text });
+      if (c.messages.length === 1) c.title = text.slice(0, 40);
+      saveChats(); renderHistory();
+      const loading = appendBubble('assistant', 'Thinking…');
+      loading.classList.add('loading');
+      try {
+        const reply = await callText(c.textModel, [
+          { role: 'system', content: SYS_PROMPT },
+          { role: 'user', content: m[1] },
+        ]);
+        loading.classList.remove('loading');
+        loading.textContent = reply;
+        c.messages.push({ role: 'assistant', content: reply });
+        c.updated = Date.now(); saveChats(); renderHistory();
+      } catch {
+        loading.classList.remove('loading'); loading.classList.add('error');
+        loading.textContent = 'Something went wrong reaching Pollinations.';
+      }
+      return;
+    }
+
+    // Unknown slash command
+    if (text.startsWith('/')) {
+      appendBubble('assistant', `❌ Unknown command. Type /help to see everything available.`);
+      return;
+    }
+
+    // Plain message — full context conversation (like /text)
+    appendBubble('user', text);
+    c.messages.push({ role: 'user', content: text });
+    if (c.messages.length === 1) c.title = text.slice(0, 40);
+    c.updated = Date.now(); saveChats(); renderHistory();
+
+    const loading = appendBubble('assistant', 'Thinking…');
+    loading.classList.add('loading');
+    try {
+      const reply = await callText(c.textModel, [
+        { role: 'system', content: SYS_PROMPT },
+        ...c.messages.filter(m => !m.isImage).map(m => ({ role: m.role, content: m.content })),
+      ]);
+      loading.classList.remove('loading');
+      loading.textContent = reply;
+      c.messages.push({ role: 'assistant', content: reply });
+      c.updated = Date.now(); saveChats(); renderHistory();
+    } catch {
+      loading.classList.remove('loading'); loading.classList.add('error');
+      loading.textContent = 'Something went wrong reaching Pollinations. Try again in a moment.';
+    }
+  }
+
+  async function runSimplePrompt(c, originalText, prompt) {
+    appendBubble('user', originalText);
+    c.messages.push({ role: 'user', content: originalText });
+    if (c.messages.length === 1) c.title = originalText.slice(0, 40);
+    saveChats(); renderHistory();
+    const loading = appendBubble('assistant', 'Working…');
+    loading.classList.add('loading');
+    try {
+      const reply = await callText(c.textModel, [
+        { role: 'system', content: SYS_PROMPT },
+        { role: 'user', content: prompt },
+      ]);
+      loading.classList.remove('loading');
+      loading.textContent = reply;
+      c.messages.push({ role: 'assistant', content: reply });
+      c.updated = Date.now(); saveChats(); renderHistory();
+    } catch {
+      loading.classList.remove('loading'); loading.classList.add('error');
+      loading.textContent = 'Something went wrong reaching Pollinations.';
+    }
+  }
+
+  // ── send flow ──
+  async function send() {
+    if (sending) return;
+    const val = inputEl.value;
+    if (!val.trim()) return;
+    inputEl.value = '';
+    inputEl.style.height = 'auto';
+    sending = true;
+    sendBtn.disabled = true;
+    try { await handleInput(val); }
+    finally { sending = false; sendBtn.disabled = false; }
+  }
+
+  // ── sidebar drawer ──
+  function openSidebar()  { sidebarEl.classList.add('open');  sidebarBackdrop.classList.add('show'); }
+  function closeSidebar() { sidebarEl.classList.remove('open'); sidebarBackdrop.classList.remove('show'); }
+  sidebarToggle.addEventListener('click', () => sidebarEl.classList.contains('open') ? closeSidebar() : openSidebar());
+  sidebarBackdrop.addEventListener('click', closeSidebar);
+
+  // ── wiring ──
+  newChatBtn.addEventListener('click', newChat);
+  helpBtn.addEventListener('click', appendHelp);
+  sendBtn.addEventListener('click', send);
+  inputEl.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+  });
+  inputEl.addEventListener('input', () => {
+    inputEl.style.height = 'auto';
+    inputEl.style.height = Math.min(inputEl.scrollHeight, 120) + 'px';
+  });
+
+  // ── init ──
+  loadChats();
+  if (!chats.length) newChat();
+  else activeId = chats.sort((a, b) => b.updated - a.updated)[0].id;
+  renderHistory();
+  renderMessages();
+  updateTopbar();
+  inputEl.focus();
+})();
+</script>
+</body>
+</html>

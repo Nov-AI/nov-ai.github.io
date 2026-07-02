@@ -8,7 +8,7 @@
 
 [![Add to Discord](https://img.shields.io/badge/Add%20to%20Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.com/oauth2/authorize?client_id=1520183989200093205&permissions=8&integration_type=0&scope=bot+applications.commands)
 [![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Nov-AI/NovAI)
-[![Powered by Pollinations](https://img.shields.io/badge/Powered%20by-Pollinations%20AI-black?style=for-the-badge)](https://pollinations.ai)
+
 
 </div>
 

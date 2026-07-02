@@ -6,7 +6,7 @@
 ██║ ╚████║╚██████╔╝ ╚████╔╝
 ╚═╝  ╚═══╝ ╚═════╝   ╚═══╝
 
-Nov — Discord bot powered by Pollinations AI
+Nov — Open Source Discord bot
 Text · Images · Audio · Video · BYOP · Multi-Provider
 """
 

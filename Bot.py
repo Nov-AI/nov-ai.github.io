@@ -777,16 +777,14 @@ def _cache_set(key: str, models: list):
     MODEL_CACHE[key] = {"ts": time.time(), "models": models}
 
 async def _fetch_pollinations_models(tipo: str) -> list[str]:
-    """Fetch live model list from Pollinations APIs."""
+    """Fetch live model list from Pollinations APIs.
+    Endpoint corretto (da APIDOCS.md ufficiale): GET gen.pollinations.ai/{type}/models
+    — i sottodomini tipo text.pollinations.ai/models NON sono l'endpoint giusto."""
     url_map = {
-        "text":      "https://text.pollinations.ai/models",
-        "image":     "https://image.pollinations.ai/models",
-        "audio":     "https://audio.pollinations.ai/models",
-        "video":     "https://video.pollinations.ai/models",
-        "3d":        "https://3d.pollinations.ai/models",
-        "realtime":  "https://realtime.pollinations.ai/models",
-        "community": "https://community.pollinations.ai/models",
-        "embedding": "https://embedding.pollinations.ai/models",
+        "text":      "https://gen.pollinations.ai/text/models",
+        "image":     "https://gen.pollinations.ai/image/models",
+        "audio":     "https://gen.pollinations.ai/audio/models",
+        "embedding": "https://gen.pollinations.ai/embeddings/models",
     }
     url = url_map.get(tipo)
     if not url:
@@ -795,8 +793,18 @@ async def _fetch_pollinations_models(tipo: str) -> list[str]:
         async with s.get(url, timeout=aiohttp.ClientTimeout(total=5)) as resp:
             resp.raise_for_status()
             data = await resp.json(content_type=None)
+    if isinstance(data, dict):
+        data = data.get("models") or data.get("data") or list(data.values())
     if isinstance(data, list):
-        return [m.get("name") or m.get("id") or str(m) for m in data if m]
+        out = []
+        for m in data:
+            if isinstance(m, dict):
+                name = m.get("name") or m.get("id")
+                if name:
+                    out.append(name)
+            elif isinstance(m, str):
+                out.append(m)
+        return out
     return []
 
 async def _fetch_sixfinger_models() -> list[str]:

@@ -721,12 +721,10 @@ async def _fetch_pollinations_models(tipo: str) -> list[str]:
         return [m.get("name") or m.get("id") or str(m) for m in data if m]
     return []
 
-async def _fetch_llm7_models(tipo: str) -> list[str]:
-    """Fetch live model list from LLM7."""
-    if tipo != "text":
-        return []
+async def _fetch_sixfinger_models() -> list[str]:
+    """Fetch live model list from SixFinger."""
     async with aiohttp.ClientSession() as s:
-        async with s.get("https://api.llm7.io/v1/models",
+        async with s.get("https://api.sixfinger.live/v1/models",
                          timeout=aiohttp.ClientTimeout(total=5)) as resp:
             resp.raise_for_status()
             data = await resp.json(content_type=None)
@@ -743,22 +741,10 @@ async def get_models_for(provider: str, tipo: str) -> list[str]:
     try:
         if provider == "pollinations":
             models = await _fetch_pollinations_models(tipo)
-        elif provider == "llm7":
-            models = await _fetch_llm7_models(tipo)
+        elif provider == "sixfinger":
+            models = await _fetch_sixfinger_models()
         else:
-            # altri provider: OpenAI-compat /models endpoint
-            p       = PROVIDERS.get(provider, {})
-            base    = p.get("url", "")
-            if not base:
-                return PROVIDER_MODELS.get(provider, {}).get(tipo, [])
-            async with aiohttp.ClientSession() as s:
-                async with s.get(f"{base}/models",
-                                 timeout=aiohttp.ClientTimeout(total=5)) as resp:
-                    resp.raise_for_status()
-                    data = await resp.json(content_type=None)
-            all_models = data if isinstance(data, list) else data.get("data", [])
-            models = [m.get("id") or m.get("name") for m in all_models
-                      if m.get("id") or m.get("name")]
+            return PROVIDER_MODELS.get(provider, {}).get(tipo, [])
 
         if models:
             _cache_set(cache_key, models)
@@ -779,8 +765,8 @@ async def provider_model_autocomplete(interaction: discord.Interaction, current:
     provider = getattr(interaction.namespace, "provider", "pollinations")
     tipo     = getattr(interaction.namespace, "type",     "text")
 
-    # LLM7 ha solo text
-    if provider == "llm7":
+    # SixFinger ha solo text
+    if provider == "sixfinger":
         tipo = "text"
 
     pool = await get_models_for(provider, tipo)
@@ -1145,8 +1131,8 @@ async def cmd_model(interaction: discord.Interaction, provider: str, type: str, 
     uid = interaction.user.id
     p   = PROVIDERS[provider]
 
-    # LLM7 ha solo testo — forza type:text silenziosamente
-    if provider == "llm7":
+    # SixFinger ha solo testo — forza type:text silenziosamente
+    if provider == "sixfinger":
         type = "text"
 
     # tipi 3D/realtime/community/embedding sono solo Pollinations

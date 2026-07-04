@@ -678,33 +678,107 @@ async def on_ready():
     print(f"✅  {BOT_NAME} v{BOT_VERSION} online as {bot.user}")
 
 # ──────────────────────────────────────────────
+#  DYNAMIC MODEL CACHE
+# ──────────────────────────────────────────────
+MODEL_CACHE: dict[str, dict] = {}   # { "pollinations:text": {"ts": float, "models": list} }
+CACHE_TTL = 600  # 10 minuti
+
+def _cache_get(key: str) -> list | None:
+    entry = MODEL_CACHE.get(key)
+    if entry and (time.time() - entry["ts"]) < CACHE_TTL:
+        return entry["models"]
+    return None
+
+def _cache_set(key: str, models: list):
+    MODEL_CACHE[key] = {"ts": time.time(), "models": models}
+
+async def _fetch_pollinations_models(tipo: str) -> list[str]:
+    """Fetch live model list from Pollinations APIs."""
+    url_map = {
+        "text":  "https://text.pollinations.ai/models",
+        "image": "https://image.pollinations.ai/models",
+        "audio": "https://audio.pollinations.ai/models",
+        "video": "https://video.pollinations.ai/models",
+    }
+    url = url_map.get(tipo)
+    if not url:
+        return []
+    async with aiohttp.ClientSession() as s:
+        async with s.get(url, timeout=aiohttp.ClientTimeout(total=5)) as resp:
+            resp.raise_for_status()
+            data = await resp.json(content_type=None)
+    # Pollinations returns a list of objects with "name" or "id"
+    if isinstance(data, list):
+        return [m.get("name") or m.get("id") or m for m in data if isinstance(m, dict)]
+    return []
+
+async def _fetch_llm7_models(tipo: str) -> list[str]:
+    """Fetch live model list from LLM7."""
+    if tipo != "text":
+        return []
+    async with aiohttp.ClientSession() as s:
+        async with s.get("https://api.llm7.io/v1/models",
+                         timeout=aiohttp.ClientTimeout(total=5)) as resp:
+            resp.raise_for_status()
+            data = await resp.json(content_type=None)
+    models = data if isinstance(data, list) else data.get("data", [])
+    return [m.get("id") or m.get("name") for m in models if m.get("id") or m.get("name")]
+
+async def get_models_for(provider: str, tipo: str) -> list[str]:
+    """Return model list for provider+type, using cache. Falls back to hardcoded."""
+    cache_key = f"{provider}:{tipo}"
+    cached = _cache_get(cache_key)
+    if cached is not None:
+        return cached
+
+    try:
+        if provider == "pollinations":
+            models = await _fetch_pollinations_models(tipo)
+        elif provider == "llm7":
+            models = await _fetch_llm7_models(tipo)
+        else:
+            # altri provider: OpenAI-compat /models endpoint
+            p       = PROVIDERS.get(provider, {})
+            base    = p.get("url", "")
+            if not base:
+                return PROVIDER_MODELS.get(provider, {}).get(tipo, [])
+            async with aiohttp.ClientSession() as s:
+                async with s.get(f"{base}/models",
+                                 timeout=aiohttp.ClientTimeout(total=5)) as resp:
+                    resp.raise_for_status()
+                    data = await resp.json(content_type=None)
+            all_models = data if isinstance(data, list) else data.get("data", [])
+            models = [m.get("id") or m.get("name") for m in all_models
+                      if m.get("id") or m.get("name")]
+
+        if models:
+            _cache_set(cache_key, models)
+            return models
+    except Exception:
+        pass
+
+    # fallback alla lista statica
+    if provider == "pollinations":
+        return KNOWN_MODELS.get(tipo, [])
+    return PROVIDER_MODELS.get(provider, {}).get(tipo, [])
+
+
+# ──────────────────────────────────────────────
 #  AUTOCOMPLETE
 # ──────────────────────────────────────────────
 async def provider_model_autocomplete(interaction: discord.Interaction, current: str):
     provider = getattr(interaction.namespace, "provider", "pollinations")
     tipo     = getattr(interaction.namespace, "type",     "text")
-    if provider == "pollinations":
-        uid  = interaction.user.id
-        pool = available_models(tipo, uid) if tipo in KNOWN_MODELS else [m for t in KNOWN_MODELS for m in available_models(t, uid)]
-    elif PROVIDERS.get(provider, {}).get("dynamic_models") and tipo == "text":
-        uid     = interaction.user.id
-        p       = PROVIDERS[provider]
-        api_key = get_provider_key(uid, provider)
-        headers = {"Authorization": f"Bearer {api_key}"} if api_key else {}
-        try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(f"{p['url']}/models", headers=headers, timeout=aiohttp.ClientTimeout(total=5)) as resp:
-                    resp.raise_for_status()
-                    data = await resp.json()
-            pool = [m.get("id","") for m in data.get("data", [])]
-            if not pool:
-                pool = PROVIDER_MODELS.get(provider, {}).get(tipo, [])
-        except Exception:
-            # Fallback alla lista statica verificata (Gratisfy) se il fetch live fallisce
-            pool = PROVIDER_MODELS.get(provider, {}).get(tipo, [])
-    else:
-        pool = PROVIDER_MODELS.get(provider, {}).get(tipo, [])
-    return [app_commands.Choice(name=m, value=m) for m in pool if current.lower() in m.lower()][:25]
+
+    pool = await get_models_for(provider, tipo)
+
+    # per pollinations senza key mostra solo i free
+    if provider == "pollinations" and not has_personal_key(interaction.user.id):
+        free = set(FREE_MODELS_NO_AUTH.get(tipo, []))
+        pool = [m for m in pool if m in free] or pool
+
+    return [app_commands.Choice(name=m[:100], value=m[:100])
+            for m in pool if current.lower() in m.lower()][:25]
 
 async def model_name_autocomplete(interaction: discord.Interaction, current: str):
     return await provider_model_autocomplete(interaction, current)

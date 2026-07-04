@@ -43,6 +43,11 @@ BOT_COLOR     = 0x5865F2
 BOT_VERSION   = "3.1.0"
 STATE_FILE    = "nov_state.json"
 
+# AI Horde — backend usato per il testo Pollinations quando l'utente non ha un account
+HORDE_BASE     = "https://aihorde.net/api/v2"
+HORDE_API_KEY  = os.getenv("HORDE_API_KEY", "0000000000")  # "0000000000" = anonymous key
+HORDE_AGENT    = "NovAI:3.1:github.com/Nov-AI/nov-ai.github.io"
+
 # ──────────────────────────────────────────────
 #  E2B SANDBOX (persistent terminal per user)
 # ──────────────────────────────────────────────
@@ -563,26 +568,96 @@ def provider_not_connected_embed(provider: str) -> discord.Embed:
         color=0xED4245
     )
 
+async def _fetch_horde_models() -> list[str]:
+    """Lista modelli text attivi su AI Horde, ordinati per numero di worker disponibili."""
+    async with aiohttp.ClientSession() as s:
+        async with s.get(f"{HORDE_BASE}/status/models?type=text",
+                         timeout=aiohttp.ClientTimeout(total=6)) as r:
+            r.raise_for_status()
+            data = await r.json(content_type=None)
+    active = sorted(
+        [m for m in data if m.get("count", 0) > 0],
+        key=lambda m: m.get("count", 0), reverse=True
+    )
+    return [m["name"] for m in active] or [m["name"] for m in data]
+
+
+async def horde_generate_text(session, prompt: str, system: str = "", model: str = None, max_length: int = 512) -> tuple[str, str]:
+    """Genera testo via AI Horde (coda distribuita di worker volontari). Ritorna (testo, modello_usato)."""
+    headers = {
+        "apikey": HORDE_API_KEY,
+        "Content-Type": "application/json",
+        "Client-Agent": HORDE_AGENT,
+    }
+    # Formato instruct esplicito — senza questo i modelli base "continuano" il testo
+    # invece di rispondere/eseguire il comando (causa del bug "spiega invece di fare").
+    instruction = f"{system}\n\n{prompt}".strip() if system else prompt
+    full_prompt = f"### Instruction:\n{instruction}\n\n### Response:\n"
+
+    payload = {
+        "prompt": full_prompt,
+        "params": {
+            "max_length": min(max_length, 512),
+            "max_context_length": 2048,
+            "temperature": 0.8,
+            "stop_sequence": ["### Instruction:", "\n\n###"],
+        },
+    }
+    if model:
+        payload["models"] = [model]
+
+    async with session.post(f"{HORDE_BASE}/generate/text/async", headers=headers, json=payload) as resp:
+        resp.raise_for_status()
+        data = await resp.json()
+    req_id = data.get("id")
+    if not req_id:
+        raise ValueError(f"AI Horde did not return a request id: {data}")
+
+    # polling — la generazione è distribuita su worker volontari, può richiedere qualche secondo
+    for _ in range(60):
+        await asyncio.sleep(1.5)
+        async with session.get(f"{HORDE_BASE}/generate/text/status/{req_id}", headers=headers) as resp:
+            resp.raise_for_status()
+            status = await resp.json()
+        if status.get("done") or status.get("finished", 0) > 0:
+            gens = status.get("generations", [])
+            if gens:
+                text = gens[0]["text"].strip()
+                # taglia eventuale continuazione oltre lo stop sequence non intercettato dal worker
+                for stop in ("### Instruction:", "\n\n###"):
+                    if stop in text:
+                        text = text.split(stop)[0].strip()
+                return text, gens[0].get("model", model or "AI Horde")
+            break
+        if status.get("faulted"):
+            raise ValueError("AI Horde generation faulted (no worker available).")
+
+    raise TimeoutError("AI Horde generation timed out — try again in a moment.")
+
+
 async def route_text(session, uid: int, messages: list, system: str = "", max_tokens: int = 1500) -> tuple[str, str]:
     """Route text generation to the active provider. Returns (reply, model_label)."""
     provider = get_active_provider(uid)
 
     # ── Pollinations ──
     if provider == "pollinations":
-        model_name = USER_MODELS.get(uid, {}).get("text", DEFAULT_MODELS["text"])
-        model = clean_model(model_name)
         if has_personal_key(uid):
+            model_name = USER_MODELS.get(uid, {}).get("text", DEFAULT_MODELS["text"])
+            model = clean_model(model_name)
             key = get_key(uid)
             data = await api_post_json(session, f"{BASE_URL}/chat/completions",
                                        {"model": model, "messages": messages, "max_tokens": max_tokens}, key)
             return data["choices"][0]["message"]["content"], model_name
         else:
-            last_user = next((m["content"] for m in reversed(messages) if m["role"] == "user"), "")
-            pub_url = (f"https://text.pollinations.ai/{urllib.parse.quote(last_user)}"
-                       f"?model={model}&system={urllib.parse.quote(system)}")
-            async with session.get(pub_url) as resp:
-                resp.raise_for_status()
-                return await resp.text(), model_name
+            # Nessun account collegato → backend AI Horde (rimpiazza il vecchio endpoint anonimo rotto)
+            last_user  = next((m["content"] for m in reversed(messages) if m["role"] == "user"), "")
+            chosen     = USER_MODELS.get(uid, {}).get("text")
+            horde_pool = await get_models_for("pollinations_horde", "text")
+            horde_model = chosen if chosen in horde_pool else None
+            reply, used_model = await horde_generate_text(
+                session, last_user, system, model=horde_model, max_length=min(max_tokens, 512)
+            )
+            return reply, f"🌸 {used_model} (AI Horde)"
 
     # ── SixFinger (OpenAI-compatible) ──
     if provider == "sixfinger":
@@ -741,6 +816,8 @@ async def get_models_for(provider: str, tipo: str) -> list[str]:
     try:
         if provider == "pollinations":
             models = await _fetch_pollinations_models(tipo)
+        elif provider == "pollinations_horde":
+            models = await _fetch_horde_models()
         elif provider == "sixfinger":
             models = await _fetch_sixfinger_models()
         else:
@@ -771,10 +848,9 @@ async def provider_model_autocomplete(interaction: discord.Interaction, current:
 
     pool = await get_models_for(provider, tipo)
 
-    # per pollinations senza key mostra solo i free
-    if provider == "pollinations" and not has_personal_key(interaction.user.id):
-        free = set(FREE_MODELS_NO_AUTH.get(tipo, []))
-        pool = [m for m in pool if m in free] or pool
+    # per pollinations senza key: menu unificato = modelli AI Horde disponibili ora
+    if provider == "pollinations" and tipo == "text" and not has_personal_key(interaction.user.id):
+        pool = await get_models_for("pollinations_horde", "text")
 
     return [app_commands.Choice(name=m[:100], value=m[:100])
             for m in pool if current.lower() in m.lower()][:25]

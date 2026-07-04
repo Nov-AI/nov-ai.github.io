@@ -756,6 +756,9 @@ async def on_ready():
     load_state()
     await bot.tree.sync()
     await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name="pollinations.ai ✨"))
+    if not getattr(bot, "_model_cache_task_started", False):
+        bot.loop.create_task(_model_cache_refresh_loop())
+        bot._model_cache_task_started = True
     print(f"✅  {BOT_NAME} v{BOT_VERSION} online as {bot.user}")
 
 # ──────────────────────────────────────────────
@@ -835,22 +838,61 @@ async def get_models_for(provider: str, tipo: str) -> list[str]:
     return PROVIDER_MODELS.get(provider, {}).get(tipo, [])
 
 
+def _cache_get_instant(provider: str, tipo: str) -> list[str]:
+    """Lettura istantanea, mai bloccante: usata dall'autocomplete (limite Discord di 3s).
+    Se la cache è fredda ritorna subito il fallback statico invece di aspettare la rete."""
+    cache_key = f"{provider}:{tipo}"
+    cached = MODEL_CACHE.get(cache_key)
+    if cached:
+        return cached["models"]
+    if provider == "pollinations":
+        return KNOWN_MODELS.get(tipo, [])
+    if provider == "pollinations_horde":
+        return []  # popolata dal refresher in background
+    return PROVIDER_MODELS.get(provider, {}).get(tipo, [])
+
+
+async def _refresh_all_model_caches():
+    """Task periodico: tiene MODEL_CACHE sempre caldo così l'autocomplete non deve mai
+    aspettare una fetch live (che sforerebbe il limite di 3s di Discord)."""
+    combos = [
+        ("pollinations", "text"), ("pollinations", "image"), ("pollinations", "audio"),
+        ("pollinations", "video"), ("pollinations", "3d"), ("pollinations", "realtime"),
+        ("pollinations", "community"), ("pollinations", "embedding"),
+        ("pollinations_horde", "text"),
+        ("sixfinger", "text"),
+    ]
+    for provider, tipo in combos:
+        try:
+            await get_models_for(provider, tipo)
+        except Exception as e:
+            print(f"⚠️  Model cache refresh failed for {provider}:{tipo} — {e}")
+
+
+async def _model_cache_refresh_loop():
+    await bot.wait_until_ready()
+    while not bot.is_closed():
+        await _refresh_all_model_caches()
+        await asyncio.sleep(CACHE_TTL // 2)  # refresh prima che la cache scada
+
+
 # ──────────────────────────────────────────────
 #  AUTOCOMPLETE
 # ──────────────────────────────────────────────
 async def provider_model_autocomplete(interaction: discord.Interaction, current: str):
-    provider = getattr(interaction.namespace, "provider", "pollinations")
-    tipo     = getattr(interaction.namespace, "type",     "text")
+    provider = getattr(interaction.namespace, "provider", None) or "pollinations"
+    tipo     = getattr(interaction.namespace, "type",     None) or "text"
 
     # SixFinger ha solo text
     if provider == "sixfinger":
         tipo = "text"
 
-    pool = await get_models_for(provider, tipo)
+    # lettura istantanea dalla cache — mai una fetch live qui, sforerebbe il limite di 3s di Discord
+    pool = _cache_get_instant(provider, tipo)
 
     # per pollinations senza key: menu unificato = modelli AI Horde disponibili ora
     if provider == "pollinations" and tipo == "text" and not has_personal_key(interaction.user.id):
-        pool = await get_models_for("pollinations_horde", "text")
+        pool = _cache_get_instant("pollinations_horde", "text") or pool
 
     return [app_commands.Choice(name=m[:100], value=m[:100])
             for m in pool if current.lower() in m.lower()][:25]

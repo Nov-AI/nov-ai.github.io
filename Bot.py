@@ -344,7 +344,13 @@ KNOWN_MODELS = {
 def clean_model(name: str) -> str:
     return MODEL_DISPLAY_TO_ID.get(name, name.replace(" (PAID)", "").strip())
 
-TYPE_EMOJI = {"text": "💬", "image": "🖼️", "audio": "🔊", "video": "🎬"}
+TYPE_EMOJI = {
+    "text": "💬", "image": "🖼️", "audio": "🔊", "video": "🎬",
+    "3d": "🧊", "realtime": "⚡", "community": "🌐", "embedding": "🔗",
+}
+
+# Tipi disponibili solo su Pollinations
+POLLINATIONS_ONLY_TYPES = {"3d", "realtime", "community", "embedding"}
 
 # ──────────────────────────────────────────────
 #  HELPERS — Pollinations
@@ -695,10 +701,14 @@ def _cache_set(key: str, models: list):
 async def _fetch_pollinations_models(tipo: str) -> list[str]:
     """Fetch live model list from Pollinations APIs."""
     url_map = {
-        "text":  "https://text.pollinations.ai/models",
-        "image": "https://image.pollinations.ai/models",
-        "audio": "https://audio.pollinations.ai/models",
-        "video": "https://video.pollinations.ai/models",
+        "text":      "https://text.pollinations.ai/models",
+        "image":     "https://image.pollinations.ai/models",
+        "audio":     "https://audio.pollinations.ai/models",
+        "video":     "https://video.pollinations.ai/models",
+        "3d":        "https://3d.pollinations.ai/models",
+        "realtime":  "https://realtime.pollinations.ai/models",
+        "community": "https://community.pollinations.ai/models",
+        "embedding": "https://embedding.pollinations.ai/models",
     }
     url = url_map.get(tipo)
     if not url:
@@ -707,9 +717,8 @@ async def _fetch_pollinations_models(tipo: str) -> list[str]:
         async with s.get(url, timeout=aiohttp.ClientTimeout(total=5)) as resp:
             resp.raise_for_status()
             data = await resp.json(content_type=None)
-    # Pollinations returns a list of objects with "name" or "id"
     if isinstance(data, list):
-        return [m.get("name") or m.get("id") or m for m in data if isinstance(m, dict)]
+        return [m.get("name") or m.get("id") or str(m) for m in data if m]
     return []
 
 async def _fetch_llm7_models(tipo: str) -> list[str]:
@@ -1118,20 +1127,35 @@ async def cmd_video(interaction: discord.Interaction, prompt: str):
 @app_commands.describe(provider="Which provider", type="Generation type", model="Model name (autocomplete)")
 @app_commands.choices(provider=PROVIDER_CHOICES)
 @app_commands.choices(type=[
-    app_commands.Choice(name="💬 Text",  value="text"),
-    app_commands.Choice(name="🖼️ Image", value="image"),
-    app_commands.Choice(name="🔊 Audio", value="audio"),
-    app_commands.Choice(name="🎬 Video", value="video"),
+    app_commands.Choice(name="💬 Text",            value="text"),
+    app_commands.Choice(name="🖼️ Image",           value="image"),
+    app_commands.Choice(name="🔊 Audio",           value="audio"),
+    app_commands.Choice(name="🎬 Video",           value="video"),
+    app_commands.Choice(name="🧊 3D",              value="3d"),
+    app_commands.Choice(name="⚡ Realtime",        value="realtime"),
+    app_commands.Choice(name="🌐 Community",       value="community"),
+    app_commands.Choice(name="🔗 Embedding",       value="embedding"),
 ])
 @app_commands.autocomplete(model=provider_model_autocomplete)
 async def cmd_model(interaction: discord.Interaction, provider: str, type: str, model: str):
     uid = interaction.user.id
     p   = PROVIDERS[provider]
 
+    # tipi 3D/realtime/community/embedding sono solo Pollinations
+    if type in POLLINATIONS_ONLY_TYPES and provider != "pollinations":
+        await interaction.response.send_message(
+            embed=discord.Embed(
+                title=f"❌ {TYPE_EMOJI.get(type,type)} {type} is Pollinations-only",
+                description=f"This model type is only available via **🌸 Pollinations**.\nUse `/model provider:pollinations type:{type}`.",
+                color=0xED4245
+            ), ephemeral=True)
+        return
+
     if provider == "pollinations":
         if not has_personal_key(uid):
             await interaction.response.send_message(embed=not_logged_in_embed(), ephemeral=True); return
-        if not is_valid_model(type, model):
+        # per le categorie dinamiche (3d/realtime/community/embedding) non facciamo check statico
+        if type in KNOWN_MODELS and not is_valid_model(type, model):
             await interaction.response.send_message(embed=invalid_model_embed(type, model, uid), ephemeral=True); return
         if not is_free_model(model) and not has_personal_key(uid):
             await interaction.response.send_message(embed=paid_model_no_key_embed(model), ephemeral=True); return

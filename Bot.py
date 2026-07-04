@@ -779,6 +779,10 @@ async def provider_model_autocomplete(interaction: discord.Interaction, current:
     provider = getattr(interaction.namespace, "provider", "pollinations")
     tipo     = getattr(interaction.namespace, "type",     "text")
 
+    # LLM7 ha solo text
+    if provider == "llm7":
+        tipo = "text"
+
     pool = await get_models_for(provider, tipo)
 
     # per pollinations senza key mostra solo i free
@@ -1140,6 +1144,10 @@ async def cmd_video(interaction: discord.Interaction, prompt: str):
 async def cmd_model(interaction: discord.Interaction, provider: str, type: str, model: str):
     uid = interaction.user.id
     p   = PROVIDERS[provider]
+
+    # LLM7 ha solo testo — forza type:text silenziosamente
+    if provider == "llm7":
+        type = "text"
 
     # tipi 3D/realtime/community/embedding sono solo Pollinations
     if type in POLLINATIONS_ONLY_TYPES and provider != "pollinations":

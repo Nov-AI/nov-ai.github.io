@@ -131,16 +131,18 @@ PROVIDER_MODELS = {
     "sixfinger": {
         # Fonte: catalogo live api.sixfinger.live (Free + Starter + Plus plan, screenshot 07/2026)
         "text": [
-            "llama-8b-instant","allam-2-7b","gpt4-nano","qwen3-32b","llama-70b",
-            "llama-scout-17b","llama-pg2-86m","gpt-oss-20b","gpt-oss-120b",
-            "step-3.5-flash","nemotron-3-super-120b-a12b","glm-4.5-air","qwen3-coder",
-            "lfm-2.5-1.2b-thinking","glm-46","deepseek-v4-flash-free","mimo-v2.5-free",
-            "north-mini-code-free","nemotron-3-ultra-free","deepseek-v4-flash",
-            "claude-sonnet-4-6","claude-haiku-4-5","claude-sonnet-4-5","claude-sonnet-4",
-            "claude-fable-5","claude-opus-4-8","claude-opus-4-7","claude-opus-4-5",
-            "claude-opus-4-1","claude-opus-4","claude-opus-4-8-fast","claude-opus-4-7-fast",
-            "claude-opus-4-6-fast","gpt-5","gpt-5.4","gpt-5.5","glm-5",
-            "kimi-k2.7-code","deepseek-v3.2",
+            "llama-8b-instant","allam-2-7b","nemotron-3-super-120b-a12b","llama-3.3-70b",
+            "gemma-4-26b","gemma-4-31b","hermes-3-405b","qwen3-next","glm-46",
+            "deepseek-v4-flash-free","mimo-v2.5-free","north-mini-code-free",
+            "nemotron-3-ultra-free","deepseek-v4-flash","claude-sonnet-4-6",
+            "claude-haiku-4-5","claude-sonnet-5","gemini-3.5-flash","gemini-3.1-pro-preview",
+            "gpt-5","gpt-5.4","gpt-5.5","glm-5","kimi-k2.7-code","deepseek-v3.2",
+            "devstral-small-2-24b","codestral-latest","kimi-k2","glm-5.2","gpt-5.6-sol",
+            "kimi-k2.5","kimi-k2.6","gpt-5.6-terra","gpt-5.6-luna","deepseek-v4",
+            "deepseek-v4-pro","gemini-3","gemini-3.1-lite","grok-4.5","grok",
+            "mistral-3.5","mistral","qwen-3.7","qwen","llama-4","qwen3-32b","llama-70b",
+            "llama-scout-17b","llama-pg2-86m","gpt-oss-20b","qwen3-coder",
+            "claude-opus-4-8","claude-opus-4-7","gpt-oss-120b",
         ],
     },
 }

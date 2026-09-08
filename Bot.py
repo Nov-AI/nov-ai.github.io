@@ -532,7 +532,8 @@ def invalid_model_embed(tipo: str, name: str, user_id: int = 0):
     )
 
 def is_valid_model(tipo: str, name: str) -> bool:
-    return clean_model(name) in [clean_model(m) for m in KNOWN_MODELS[tipo]]
+    models = KNOWN_MODELS[tipo] + _cache_get_instant("pollinations", tipo)
+    return clean_model(name) in [clean_model(m) for m in models]
 
 # ──────────────────────────────────────────────
 #  HELPERS — Multi-Provider
